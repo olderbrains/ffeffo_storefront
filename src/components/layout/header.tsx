@@ -2,8 +2,9 @@
 
 import { Heart, Menu, Search, ShoppingCart, User, X } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
+import { selectCartCount, useCartStore } from '@/lib/stores/cart-store';
 import { cn } from '@/lib/utils';
 
 const navigation = [
@@ -14,6 +15,9 @@ const navigation = [
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const cartCount = useCartStore(selectCartCount);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -67,6 +71,11 @@ export function Header() {
             aria-label="Cart"
           >
             <ShoppingCart className="h-5 w-5" />
+            {mounted && cartCount > 0 && (
+              <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-medium text-primary-foreground">
+                {cartCount}
+              </span>
+            )}
           </Link>
 
           <Link
