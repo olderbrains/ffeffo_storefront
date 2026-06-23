@@ -1,5 +1,7 @@
 'use client';
 
+import { motion } from 'framer-motion';
+import { ChevronRight, Star } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -51,7 +53,6 @@ export function CategoryView({ slug }: { slug: string }) {
   const [status, setStatus] = useState<'loading' | 'ready' | 'error' | 'notfound'>('loading');
   const [loadingMore, setLoadingMore] = useState(false);
 
-  // Resolve the category (and its sub-categories) from the slug.
   useEffect(() => {
     let active = true;
     setStatus('loading');
@@ -71,9 +72,7 @@ export function CategoryView({ slug }: { slug: string }) {
         setStatus(err instanceof ApiError && err.statusCode === 404 ? 'notfound' : 'error');
       }
     })();
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, [slug]);
 
   const loadProducts = useCallback(
@@ -99,58 +98,59 @@ export function CategoryView({ slug }: { slug: string }) {
     [category, sortIdx],
   );
 
-  // (Re)load page 1 whenever the category or sort changes.
   useEffect(() => {
     if (category) loadProducts(1, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category, sortIdx]);
 
   const hasMore = pagination ? products.length < pagination.total : false;
-  const title =
-    category?.name || slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  const title = category?.name || slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
   if (status === 'notfound') {
     return (
       <div className="container py-20 text-center">
         <h1 className="text-2xl font-bold">Category not found</h1>
-        <p className="mt-2 text-muted-foreground">
-          The category you’re looking for doesn’t exist.
-        </p>
-        <Link href="/" className="mt-6 inline-block text-sm font-medium text-primary hover:underline">
-          ← Back to home
+        <p className="mt-2 text-muted-foreground">The category you&apos;re looking for doesn&apos;t exist.</p>
+        <Link href="/" className="mt-6 inline-block text-sm font-medium text-violet hover:underline cursor-pointer">
+          &larr; Back to home
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="container py-8">
-      <nav className="mb-4 text-sm text-muted-foreground">
-        <Link href="/" className="hover:text-foreground">
-          Home
-        </Link>
-        <span className="mx-2">/</span>
-        <span className="text-foreground">{title}</span>
+    <motion.div
+      className="container py-8"
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+    >
+      {/* Breadcrumb */}
+      <nav className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground">
+        <Link href="/" className="cursor-pointer hover:text-foreground transition-colors">Home</Link>
+        <ChevronRight className="h-3.5 w-3.5" />
+        <span className="text-foreground/70">{title}</span>
       </nav>
 
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">{title}</h1>
+      <div className="mb-10">
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">{title}</h1>
         {category?.description && (
-          <p className="mt-2 text-muted-foreground">{category.description}</p>
+          <p className="mt-2 text-muted-foreground max-w-2xl">{category.description}</p>
         )}
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
+        {/* Sidebar */}
         <aside className="space-y-6">
           {children.length > 0 && (
-            <div>
-              <h3 className="font-semibold">Shop by category</h3>
-              <ul className="mt-4 space-y-2">
+            <div className="glass-card p-5">
+              <h3 className="font-semibold text-sm mb-3">Subcategories</h3>
+              <ul className="space-y-1.5">
                 {children.map((c) => (
                   <li key={c._id}>
                     <Link
                       href={`/categories/${c.slug}`}
-                      className="text-sm text-muted-foreground hover:text-foreground"
+                      className="cursor-pointer block px-3 py-2 rounded-lg text-sm text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-black/[0.03]"
                     >
                       {c.name}
                     </Link>
@@ -161,6 +161,7 @@ export function CategoryView({ slug }: { slug: string }) {
           )}
         </aside>
 
+        {/* Products */}
         <div className="lg:col-span-3">
           <div className="mb-6 flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
@@ -169,27 +170,25 @@ export function CategoryView({ slug }: { slug: string }) {
                 : 'Loading…'}
             </p>
             <label className="flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground">Sort by:</span>
+              <span className="text-muted-foreground hidden sm:inline">Sort:</span>
               <select
                 value={sortIdx}
                 onChange={(e) => setSortIdx(Number(e.target.value))}
-                className="rounded-md border bg-background px-3 py-2 text-sm"
+                className="cursor-pointer rounded-xl border border-black/[0.08] bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-violet/40"
               >
                 {SORTS.map((s, i) => (
-                  <option key={s.label} value={i}>
-                    {s.label}
-                  </option>
+                  <option key={s.label} value={i}>{s.label}</option>
                 ))}
               </select>
             </label>
           </div>
 
           {status === 'error' && (
-            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-8 text-center">
-              <p className="text-sm text-destructive">Couldn’t load products. Please try again.</p>
+            <div className="glass-card p-8 text-center">
+              <p className="text-sm text-destructive">Couldn&apos;t load products. Please try again.</p>
               <button
                 onClick={() => loadProducts(1, true)}
-                className="mt-4 rounded-md border px-4 py-2 text-sm font-medium hover:bg-accent"
+                className="cursor-pointer mt-4 rounded-xl border border-black/[0.08] px-4 py-2 text-sm font-medium hover:bg-black/[0.03] transition-colors"
               >
                 Retry
               </button>
@@ -200,64 +199,76 @@ export function CategoryView({ slug }: { slug: string }) {
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
               {Array.from({ length: 9 }).map((_, i) => (
                 <div key={i} className="space-y-3">
-                  <div className="aspect-square animate-pulse rounded-lg bg-muted" />
-                  <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
-                  <div className="h-4 w-1/2 animate-pulse rounded bg-muted" />
+                  <div className="aspect-square rounded-2xl bg-secondary animate-pulse" />
+                  <div className="h-4 w-3/4 rounded bg-secondary animate-pulse" />
+                  <div className="h-4 w-1/2 rounded bg-secondary animate-pulse" />
                 </div>
               ))}
             </div>
           )}
 
           {status === 'ready' && products.length === 0 && (
-            <div className="rounded-lg border bg-muted/30 p-12 text-center">
+            <div className="glass-card p-12 text-center">
               <p className="font-medium">No products in this category yet</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Check back soon — we’re adding new products all the time.
+                Check back soon — we&apos;re adding new products all the time.
               </p>
             </div>
           )}
 
           {status === 'ready' && products.length > 0 && (
             <>
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                {products.map((product) => (
-                  <Link
+              <div className="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-3">
+                {products.map((product, i) => (
+                  <motion.div
                     key={product._id}
-                    href={`/products/${product.slug}`}
-                    className="group space-y-3"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: i * 0.04 }}
                   >
-                    <div className="aspect-square overflow-hidden rounded-lg border bg-muted">
-                      {product.images[0] && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={product.images[0].url}
-                          alt={product.images[0].alt || product.name}
-                          className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                        />
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium line-clamp-2">{product.name}</h3>
-                      {product.brandId && (
-                        <p className="text-xs text-muted-foreground">{product.brandId.name}</p>
-                      )}
-                      <div className="mt-1 flex items-center gap-2">
-                        <span className="text-sm font-bold">
-                          ₹{(product.salePrice || product.basePrice).toLocaleString('en-IN')}
-                        </span>
-                        {product.salePrice && product.salePrice < product.basePrice && (
-                          <span className="text-xs text-muted-foreground line-through">
-                            ₹{product.basePrice.toLocaleString('en-IN')}
-                          </span>
+                    <Link
+                      href={`/products/${product.slug}`}
+                      className="cursor-pointer group block space-y-3"
+                    >
+                      <div className="relative aspect-square overflow-hidden rounded-2xl border border-black/[0.05] bg-secondary/30 transition-all duration-500 group-hover:border-black/15 group-hover:shadow-lg group-hover:shadow-violet/5">
+                        {product.images[0] && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={product.images[0].url}
+                            alt={product.images[0].alt || product.name}
+                            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                          />
                         )}
-                        {product.ratings.count > 0 && (
-                          <span className="ml-auto text-xs text-muted-foreground">
-                            ★ {product.ratings.average}
-                          </span>
+                        {product.salePrice && product.salePrice < product.basePrice && (
+                          <div className="absolute top-3 left-3 rounded-full bg-gradient-to-r from-pink to-violet px-2.5 py-0.5 text-[10px] font-bold text-white">
+                            SALE
+                          </div>
                         )}
                       </div>
-                    </div>
-                  </Link>
+                      <div className="space-y-1 px-1">
+                        <h3 className="text-sm font-medium line-clamp-2 transition-colors group-hover:text-violet">{product.name}</h3>
+                        {product.brandId && (
+                          <p className="text-xs text-muted-foreground">{product.brandId.name}</p>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold">
+                            ₹{(product.salePrice || product.basePrice).toLocaleString('en-IN')}
+                          </span>
+                          {product.salePrice && product.salePrice < product.basePrice && (
+                            <span className="text-xs text-muted-foreground line-through">
+                              ₹{product.basePrice.toLocaleString('en-IN')}
+                            </span>
+                          )}
+                          {product.ratings.count > 0 && (
+                            <span className="ml-auto flex items-center gap-0.5 text-xs text-muted-foreground">
+                              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                              {product.ratings.average}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  </motion.div>
                 ))}
               </div>
 
@@ -266,7 +277,7 @@ export function CategoryView({ slug }: { slug: string }) {
                   <button
                     onClick={() => loadProducts((pagination?.page || 1) + 1, false)}
                     disabled={loadingMore}
-                    className="rounded-md border px-6 py-2.5 text-sm font-medium transition-colors hover:bg-accent disabled:opacity-50"
+                    className="cursor-pointer rounded-xl border border-black/[0.08] px-8 py-3 text-sm font-medium transition-all duration-200 hover:bg-black/[0.03] hover:border-black/15 disabled:opacity-50"
                   >
                     {loadingMore ? 'Loading…' : 'Load more'}
                   </button>
@@ -276,6 +287,6 @@ export function CategoryView({ slug }: { slug: string }) {
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

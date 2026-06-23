@@ -46,6 +46,19 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        violet: {
+          DEFAULT: '#7c3aed',
+          light: '#8b5cf6',
+          dark: '#6d28d9',
+        },
+        cyan: {
+          DEFAULT: '#0891b2',
+          light: '#06b6d4',
+        },
+        pink: {
+          DEFAULT: '#db2777',
+          light: '#ec4899',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',

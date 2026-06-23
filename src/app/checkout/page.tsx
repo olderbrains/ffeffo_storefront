@@ -1,5 +1,6 @@
 'use client';
 
+import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -47,7 +48,7 @@ export default function CheckoutPage() {
         <p className="mt-2 text-muted-foreground">Add some products before checking out.</p>
         <Link
           href="/"
-          className="mt-6 inline-block rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          className="cursor-pointer mt-6 inline-block rounded-xl bg-gradient-to-r from-violet to-violet-dark px-6 py-3 text-sm font-medium text-white transition-all duration-300 hover:shadow-lg hover:shadow-violet/25"
         >
           Continue Shopping
         </Link>
@@ -102,123 +103,93 @@ export default function CheckoutPage() {
     }
   };
 
+  const inputClass = "w-full rounded-xl border border-black/[0.08] bg-white px-4 py-3.5 text-sm outline-none transition-all duration-200 focus:border-violet/40 focus:ring-2 focus:ring-violet/20 placeholder:text-muted-foreground/60";
+
   return (
-    <div className="container py-8">
-      <h1 className="text-3xl font-bold">Checkout</h1>
+    <motion.div
+      className="container py-8"
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+    >
+      <h1 className="text-3xl font-bold tracking-tight">Checkout</h1>
 
       <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
-        <div className="space-y-8 lg:col-span-2">
-          <section className="rounded-lg border p-6">
-            <h2 className="text-lg font-semibold">Shipping Address</h2>
-            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <input
-                type="text"
-                placeholder="Full Name"
-                value={form.fullName}
-                onChange={(e) => updateField('fullName', e.target.value)}
-                className="rounded-md border bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary"
-              />
-              <input
-                type="tel"
-                placeholder="Phone Number"
-                value={form.phone}
-                onChange={(e) => updateField('phone', e.target.value)}
-                className="rounded-md border bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary"
-              />
-              <input
-                type="text"
-                placeholder="Address Line 1"
-                value={form.addressLine1}
-                onChange={(e) => updateField('addressLine1', e.target.value)}
-                className="rounded-md border bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary sm:col-span-2"
-              />
-              <input
-                type="text"
-                placeholder="City"
-                value={form.city}
-                onChange={(e) => updateField('city', e.target.value)}
-                className="rounded-md border bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary"
-              />
-              <input
-                type="text"
-                placeholder="State"
-                value={form.state}
-                onChange={(e) => updateField('state', e.target.value)}
-                className="rounded-md border bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary"
-              />
-              <input
-                type="text"
-                placeholder="PIN Code"
-                value={form.pinCode}
-                onChange={(e) => updateField('pinCode', e.target.value)}
-                className="rounded-md border bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary"
-              />
+        <div className="space-y-6 lg:col-span-2">
+          <section className="glass-card p-6">
+            <h2 className="text-lg font-semibold mb-5">Shipping Address</h2>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <input type="text" placeholder="Full Name" value={form.fullName} onChange={(e) => updateField('fullName', e.target.value)} className={inputClass} />
+              <input type="tel" placeholder="Phone Number" value={form.phone} onChange={(e) => updateField('phone', e.target.value)} className={inputClass} />
+              <input type="text" placeholder="Address Line 1" value={form.addressLine1} onChange={(e) => updateField('addressLine1', e.target.value)} className={`${inputClass} sm:col-span-2`} />
+              <input type="text" placeholder="City" value={form.city} onChange={(e) => updateField('city', e.target.value)} className={inputClass} />
+              <input type="text" placeholder="State" value={form.state} onChange={(e) => updateField('state', e.target.value)} className={inputClass} />
+              <input type="text" placeholder="PIN Code" value={form.pinCode} onChange={(e) => updateField('pinCode', e.target.value)} className={inputClass} />
             </div>
           </section>
 
-          <section className="rounded-lg border p-6">
-            <h2 className="text-lg font-semibold">Payment Method</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
+          <section className="glass-card p-6">
+            <h2 className="text-lg font-semibold mb-3">Payment Method</h2>
+            <p className="text-sm text-muted-foreground mb-4">
               You will be redirected to Razorpay to complete payment securely.
             </p>
-            <div className="mt-4 flex flex-wrap gap-2 text-sm text-muted-foreground">
-              <span className="rounded border px-3 py-1">UPI</span>
-              <span className="rounded border px-3 py-1">Debit Card</span>
-              <span className="rounded border px-3 py-1">Credit Card</span>
-              <span className="rounded border px-3 py-1">Net Banking</span>
-              <span className="rounded border px-3 py-1">Wallets</span>
-              <span className="rounded border px-3 py-1">EMI</span>
+            <div className="flex flex-wrap gap-2">
+              {['UPI', 'Debit Card', 'Credit Card', 'Net Banking', 'Wallets', 'EMI'].map((m) => (
+                <span key={m} className="rounded-lg border border-black/[0.08] bg-secondary/30 px-3 py-1.5 text-xs text-muted-foreground">{m}</span>
+              ))}
             </div>
           </section>
         </div>
 
-        <div className="h-fit rounded-lg border p-6">
-          <h2 className="text-lg font-semibold">Order Summary</h2>
-          <div className="mt-4 space-y-3">
+        {/* Order summary */}
+        <div className="h-fit glass-card p-6">
+          <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
+          <div className="space-y-3">
             {items.map((item) => (
               <div key={item.variantId} className="flex gap-3">
-                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md border bg-muted">
+                <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-black/[0.05] bg-secondary/30">
                   {item.image && (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
                   )}
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium line-clamp-1">{item.name}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{item.name}</p>
                   {item.variantLabel !== 'Default' && (
                     <p className="text-xs text-muted-foreground">{item.variantLabel}</p>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    {item.quantity} × ₹{item.price.toLocaleString('en-IN')}
+                    {item.quantity} &times; ₹{item.price.toLocaleString('en-IN')}
                   </p>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="mt-6 space-y-2 border-t pt-4 text-sm">
+          <div className="mt-6 space-y-2 border-t border-black/[0.04] pt-4 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Subtotal</span>
               <span>₹{subtotal.toLocaleString('en-IN')}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Shipping</span>
-              <span className="text-green-600">Free</span>
+              <span className="text-cyan">Free</span>
             </div>
-            <div className="flex justify-between border-t pt-2 font-semibold">
+            <div className="flex justify-between border-t border-black/[0.04] pt-2 font-semibold">
               <span>Total</span>
-              <span>₹{subtotal.toLocaleString('en-IN')}</span>
+              <span className="text-gradient-violet">₹{subtotal.toLocaleString('en-IN')}</span>
             </div>
           </div>
 
           <button
             onClick={handlePlaceOrder}
             disabled={placing}
-            className="mt-6 w-full rounded-md bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+            className="cursor-pointer mt-6 w-full rounded-xl bg-gradient-to-r from-violet to-violet-dark px-4 py-3.5 text-sm font-medium text-white transition-all duration-300 hover:shadow-lg hover:shadow-violet/25 disabled:opacity-50"
           >
             {placing ? 'Placing Order…' : 'Place Order & Pay'}
           </button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     template: '%s | Speffo',
   },
   description: 'Shop premium products with fast delivery. Browse our wide collection of quality products at competitive prices.',
-  keywords: ['ecommerce', 'online shopping', 'premium products'],
+  keywords: ['ecommerce', 'online shopping', 'premium products', 'speffo'],
   openGraph: {
     type: 'website',
     locale: 'en_IN',
@@ -38,7 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <main className="flex-1">{children}</main>
             <Footer />
           </div>
-          <Toaster position="top-right" richColors />
+          <Toaster position="top-right" richColors theme="light" />
         </Providers>
       </body>
     </html>
