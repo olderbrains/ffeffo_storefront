@@ -50,7 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <main className="flex-1">{children}</main>
             <Footer />
           </div>
-          <Toaster position="bottom-right" richColors theme="light" />
+          <Toaster position="top-center" richColors theme="light" />
         </Providers>
       </body>
     </html>
