@@ -1,15 +1,12 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { devLogin, loginWithEmail, loginWithGoogle } from '@/lib/api/auth';
-
-const IS_DEV = process.env.NODE_ENV === 'development';
+import { loginWithEmail, loginWithGoogle } from '@/lib/api/auth';
 
 function describeError(err: unknown): string {
   if (err && typeof err === 'object' && 'code' in err) {
@@ -26,6 +23,10 @@ function describeError(err: unknown): string {
         return 'Firebase is not configured. Set NEXT_PUBLIC_FIREBASE_* in .env.local.';
       case 'auth/popup-closed-by-user':
         return 'Sign-in was cancelled.';
+      case 'auth/popup-blocked':
+        return 'Popup was blocked. Please allow popups for this site and try again.';
+      case 'auth/cancelled-popup-request':
+        return 'Sign-in was cancelled.';
       default:
         break;
     }
@@ -36,8 +37,13 @@ function describeError(err: unknown): string {
   return 'Unable to sign in. Please try again.';
 }
 
+const IS_DEV = process.env.NODE_ENV === 'development';
+
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get('redirect') || '/account';
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -49,7 +55,7 @@ export default function LoginPage() {
     try {
       await loginWithEmail(email, password);
       toast.success('Signed in successfully');
-      router.replace('/account');
+      router.replace(redirect);
     } catch (err) {
       toast.error(describeError(err));
     } finally {
@@ -63,21 +69,7 @@ export default function LoginPage() {
     try {
       await loginWithGoogle();
       toast.success('Signed in successfully');
-      router.replace('/account');
-    } catch (err) {
-      toast.error(describeError(err));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDevLogin = async () => {
-    if (loading) return;
-    setLoading(true);
-    try {
-      await devLogin('vikas.kumar@gmail.com');
-      toast.success('Signed in as vikas.kumar@gmail.com');
-      router.replace('/account');
+      router.replace(redirect);
     } catch (err) {
       toast.error(describeError(err));
     } finally {
@@ -87,12 +79,6 @@ export default function LoginPage() {
 
   return (
     <div className="container flex min-h-[80vh] items-center justify-center py-12">
-      {/* Background ambient */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-1/3 left-1/4 w-[400px] h-[400px] rounded-full bg-violet/[0.04] blur-[150px]" />
-        <div className="absolute bottom-1/3 right-1/4 w-[300px] h-[300px] rounded-full bg-cyan/[0.03] blur-[120px]" />
-      </div>
-
       <motion.div
         className="relative w-full max-w-md glass-card p-8 sm:p-10"
         initial={{ opacity: 0, y: 30, filter: 'blur(8px)' }}
@@ -100,16 +86,6 @@ export default function LoginPage() {
         transition={{ duration: 0.6 }}
       >
         <div className="text-center mb-8">
-          <Link href="/" className="inline-block mb-4">
-            <Image
-              src="/logo.png"
-              alt="Speffo"
-              width={120}
-              height={44}
-              className="h-10 w-auto object-contain mx-auto"
-              priority
-            />
-          </Link>
           <h1 className="text-2xl font-bold">Welcome Back</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Sign in to your account to continue shopping
@@ -137,7 +113,7 @@ export default function LoginPage() {
               <span className="w-full border-t border-black/[0.06]" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-3 text-muted-foreground">Or</span>
+              <span className="bg-card px-3 text-muted-foreground">Or</span>
             </div>
           </div>
 
@@ -149,7 +125,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email address"
-              className="w-full rounded-xl border border-black/[0.08] bg-white px-4 py-3.5 text-sm outline-none transition-all duration-200 focus:border-violet/40 focus:ring-2 focus:ring-violet/20 placeholder:text-muted-foreground/60"
+              className="w-full rounded-xl border border-black/[0.08] bg-white px-4 py-3.5 text-sm outline-none transition-all duration-200 focus:border-forest/40 focus:ring-2 focus:ring-forest/20 placeholder:text-muted-foreground/60"
             />
             <input
               type="password"
@@ -158,12 +134,12 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
-              className="w-full rounded-xl border border-black/[0.08] bg-white px-4 py-3.5 text-sm outline-none transition-all duration-200 focus:border-violet/40 focus:ring-2 focus:ring-violet/20 placeholder:text-muted-foreground/60"
+              className="w-full rounded-xl border border-black/[0.08] bg-white px-4 py-3.5 text-sm outline-none transition-all duration-200 focus:border-forest/40 focus:ring-2 focus:ring-forest/20 placeholder:text-muted-foreground/60"
             />
             <button
               type="submit"
               disabled={loading}
-              className="cursor-pointer w-full rounded-xl bg-gradient-to-r from-violet to-violet-dark px-4 py-3.5 text-sm font-medium text-white transition-all duration-300 hover:shadow-lg hover:shadow-violet/25 disabled:cursor-not-allowed disabled:opacity-60"
+              className="cursor-pointer w-full rounded-xl bg-forest px-4 py-3.5 text-sm font-medium text-sand transition-all duration-200 hover:bg-forest-deep disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? 'Signing in…' : 'Sign In'}
             </button>
@@ -173,7 +149,16 @@ export default function LoginPage() {
         {IS_DEV && (
           <button
             type="button"
-            onClick={handleDevLogin}
+            onClick={async () => {
+              const { devLogin } = await import('@/lib/api/auth');
+              setLoading(true);
+              try {
+                await devLogin('vikas.kumar@gmail.com');
+                router.replace(redirect);
+              } finally {
+                setLoading(false);
+              }
+            }}
             disabled={loading}
             className="cursor-pointer mt-4 w-full rounded-xl border border-dashed border-amber-500/30 bg-amber-500/5 px-4 py-2.5 text-xs font-medium text-amber-600 transition-colors hover:bg-amber-500/10 disabled:opacity-60"
           >
@@ -186,7 +171,10 @@ export default function LoginPage() {
             Forgot password?
           </Link>
           <span className="mx-2 text-black/20">|</span>
-          <Link href="/register" className="cursor-pointer hover:text-foreground transition-colors">
+          <Link
+            href={`/register${redirect !== '/account' ? `?redirect=${encodeURIComponent(redirect)}` : ''}`}
+            className="cursor-pointer hover:text-foreground transition-colors"
+          >
             Create account
           </Link>
         </div>

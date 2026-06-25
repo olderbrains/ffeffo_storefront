@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -23,7 +23,10 @@ function describeError(err: unknown): string {
       case 'auth/api-key-not-valid.-please-pass-a-valid-api-key.':
         return 'Firebase is not configured. Set NEXT_PUBLIC_FIREBASE_* in .env.local.';
       case 'auth/popup-closed-by-user':
+      case 'auth/cancelled-popup-request':
         return 'Sign-up was cancelled.';
+      case 'auth/popup-blocked':
+        return 'Popup was blocked. Please allow popups for this site and try again.';
       default:
         break;
     }
@@ -36,6 +39,9 @@ function describeError(err: unknown): string {
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get('redirect') || '/account';
+
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -49,7 +55,7 @@ export default function RegisterPage() {
     try {
       await registerWithEmail({ firstName, lastName, email, password });
       toast.success('Account created successfully');
-      router.replace('/account');
+      router.replace(redirect);
     } catch (err) {
       toast.error(describeError(err));
     } finally {
@@ -63,7 +69,7 @@ export default function RegisterPage() {
     try {
       await loginWithGoogle();
       toast.success('Account ready');
-      router.replace('/account');
+      router.replace(redirect);
     } catch (err) {
       toast.error(describeError(err));
     } finally {
@@ -73,12 +79,6 @@ export default function RegisterPage() {
 
   return (
     <div className="container flex min-h-[80vh] items-center justify-center py-12">
-      {/* Background ambient */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-1/3 right-1/4 w-[400px] h-[400px] rounded-full bg-cyan/[0.03] blur-[150px]" />
-        <div className="absolute bottom-1/3 left-1/4 w-[300px] h-[300px] rounded-full bg-violet/[0.04] blur-[120px]" />
-      </div>
-
       <motion.div
         className="relative w-full max-w-md glass-card p-8 sm:p-10"
         initial={{ opacity: 0, y: 30, filter: 'blur(8px)' }}
@@ -121,7 +121,7 @@ export default function RegisterPage() {
               <span className="w-full border-t border-black/[0.06]" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-3 text-muted-foreground">Or</span>
+              <span className="bg-card px-3 text-muted-foreground">Or</span>
             </div>
           </div>
 
@@ -134,7 +134,7 @@ export default function RegisterPage() {
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 placeholder="First name"
-                className="w-full rounded-xl border border-black/[0.08] bg-white px-4 py-3.5 text-sm outline-none transition-all duration-200 focus:border-violet/40 focus:ring-2 focus:ring-violet/20 placeholder:text-muted-foreground/60"
+                className="w-full rounded-xl border border-black/[0.08] bg-white px-4 py-3.5 text-sm outline-none transition-all duration-200 focus:border-forest/40 focus:ring-2 focus:ring-forest/20 placeholder:text-muted-foreground/60"
               />
               <input
                 type="text"
@@ -143,7 +143,7 @@ export default function RegisterPage() {
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 placeholder="Last name"
-                className="w-full rounded-xl border border-black/[0.08] bg-white px-4 py-3.5 text-sm outline-none transition-all duration-200 focus:border-violet/40 focus:ring-2 focus:ring-violet/20 placeholder:text-muted-foreground/60"
+                className="w-full rounded-xl border border-black/[0.08] bg-white px-4 py-3.5 text-sm outline-none transition-all duration-200 focus:border-forest/40 focus:ring-2 focus:ring-forest/20 placeholder:text-muted-foreground/60"
               />
             </div>
             <input
@@ -153,7 +153,7 @@ export default function RegisterPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email address"
-              className="w-full rounded-xl border border-black/[0.08] bg-white px-4 py-3.5 text-sm outline-none transition-all duration-200 focus:border-violet/40 focus:ring-2 focus:ring-violet/20 placeholder:text-muted-foreground/60"
+              className="w-full rounded-xl border border-black/[0.08] bg-white px-4 py-3.5 text-sm outline-none transition-all duration-200 focus:border-forest/40 focus:ring-2 focus:ring-forest/20 placeholder:text-muted-foreground/60"
             />
             <input
               type="password"
@@ -162,13 +162,13 @@ export default function RegisterPage() {
               minLength={6}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-              className="w-full rounded-xl border border-black/[0.08] bg-white px-4 py-3.5 text-sm outline-none transition-all duration-200 focus:border-violet/40 focus:ring-2 focus:ring-violet/20 placeholder:text-muted-foreground/60"
+              placeholder="Password (min 6 characters)"
+              className="w-full rounded-xl border border-black/[0.08] bg-white px-4 py-3.5 text-sm outline-none transition-all duration-200 focus:border-forest/40 focus:ring-2 focus:ring-forest/20 placeholder:text-muted-foreground/60"
             />
             <button
               type="submit"
               disabled={loading}
-              className="cursor-pointer w-full rounded-xl bg-gradient-to-r from-violet to-violet-dark px-4 py-3.5 text-sm font-medium text-white transition-all duration-300 hover:shadow-lg hover:shadow-violet/25 disabled:cursor-not-allowed disabled:opacity-60"
+              className="cursor-pointer w-full rounded-xl bg-forest px-4 py-3.5 text-sm font-medium text-sand transition-all duration-200 hover:bg-forest-deep disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? 'Creating account…' : 'Create Account'}
             </button>
@@ -177,7 +177,10 @@ export default function RegisterPage() {
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
           Already have an account?{' '}
-          <Link href="/login" className="cursor-pointer font-medium text-violet hover:text-foreground transition-colors">
+          <Link
+            href={`/login${redirect !== '/account' ? `?redirect=${encodeURIComponent(redirect)}` : ''}`}
+            className="cursor-pointer font-medium text-forest hover:text-foreground transition-colors"
+          >
             Sign in
           </Link>
         </p>

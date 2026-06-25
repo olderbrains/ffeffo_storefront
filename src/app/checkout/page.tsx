@@ -86,8 +86,7 @@ export default function CheckoutPage() {
 
   const handlePlaceOrder = async () => {
     if (!isAuthenticated) {
-      toast.error('Please log in to place an order');
-      router.push('/login');
+      router.push('/login?redirect=/checkout');
       return;
     }
     if (!validate()) return;
@@ -116,9 +115,9 @@ export default function CheckoutPage() {
         paymentMethod: 'cod',
       });
 
-      clearCart();
       toast.success('Order placed successfully!');
       router.push('/account/orders');
+      clearCart();
     } catch {
       toast.error('Failed to place order. Please try again.');
     } finally {
