@@ -1,10 +1,12 @@
 'use client';
 
-import { Heart, MapPin, Package, Star, User } from 'lucide-react';
+import { Heart, LogOut, MapPin, Package, Star, User } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
+import { logout } from '@/lib/api/auth';
 import { useAuthStore } from '@/lib/stores/auth-store';
 
 const accountNav = [
@@ -20,6 +22,20 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
   const pathname = usePathname();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [mounted, setMounted] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await logout();
+      router.replace('/');
+    } catch {
+      toast.error('Logout failed. Please try again.');
+    } finally {
+      setLoggingOut(false);
+    }
+  };
 
   useEffect(() => setMounted(true), []);
 
@@ -72,6 +88,17 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
               );
             })}
           </nav>
+
+          <div className="mt-4 border-t border-border pt-4">
+            <button
+              onClick={handleLogout}
+              disabled={loggingOut}
+              className="flex w-full items-center gap-3 rounded-sm px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+            >
+              <LogOut className="h-4 w-4" />
+              {loggingOut ? 'Signing out…' : 'Sign Out'}
+            </button>
+          </div>
         </aside>
 
         <div className="lg:col-span-3">{children}</div>
