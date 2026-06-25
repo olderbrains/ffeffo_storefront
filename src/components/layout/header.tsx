@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
+import { SearchOverlay } from '@/components/search/search-overlay';
 import { selectCartCount, useCartStore } from '@/lib/stores/cart-store';
 import { cn } from '@/lib/utils';
 
@@ -24,6 +25,7 @@ const announcements = [
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const cartCount = useCartStore(selectCartCount);
   const [mounted, setMounted] = useState(false);
@@ -37,6 +39,7 @@ export function Header() {
 
   return (
     <>
+      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
       <header className="fixed top-0 left-0 right-0 z-50">
         {/* Announcement marquee */}
         <div className="bg-forest text-sand overflow-hidden">
@@ -108,13 +111,13 @@ export function Header() {
 
               {/* Right: actions */}
               <div className="flex items-center justify-end gap-0.5">
-                <Link
-                  href="/search"
+                <button
+                  onClick={() => setSearchOpen(true)}
                   className="cursor-pointer flex h-9 w-9 items-center justify-center rounded-md text-foreground/70 transition-colors hover:bg-black/[0.04] hover:text-foreground"
                   aria-label="Search"
                 >
                   <Search className="h-[19px] w-[19px]" strokeWidth={1.6} />
-                </Link>
+                </button>
                 <Link
                   href="/account/wishlist"
                   className="cursor-pointer hidden h-9 w-9 items-center justify-center rounded-md text-foreground/70 transition-colors hover:bg-black/[0.04] hover:text-foreground sm:flex"
