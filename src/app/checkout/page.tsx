@@ -1,16 +1,47 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Lock, ShieldCheck, Truck } from 'lucide-react';
+import { CreditCard, Lock, ShieldCheck, Truck } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 import { api } from '@/lib/api/client';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { selectCartSubtotal, useCartStore } from '@/lib/stores/cart-store';
+
+declare global {
+  interface Window {
+    Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
+  }
+}
+
+interface RazorpayOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  image: string;
+  order_id: string;
+  handler: (response: RazorpaySuccessResponse) => void;
+  prefill: { name: string; contact: string };
+  notes: Record<string, string>;
+  theme: { color: string };
+  modal: { ondismiss: () => void };
+}
+
+interface RazorpayInstance {
+  open(): void;
+}
+
+interface RazorpaySuccessResponse {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}
 
 interface ShippingForm {
   fullName: string;
@@ -36,6 +67,22 @@ const FREE_SHIPPING_THRESHOLD = 999;
 const SHIPPING_CHARGE = 99;
 const TAX_RATE = 0.18;
 
+const RZP_SCRIPT_URL = 'https://checkout.razorpay.com/v1/checkout.js';
+
+function loadRazorpayScript(): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (typeof window !== 'undefined' && window.Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = RZP_SCRIPT_URL;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.head.appendChild(script);
+  });
+}
+
 export default function CheckoutPage() {
   const router = useRouter();
   const items = useCartStore((s) => s.items);
@@ -46,6 +93,7 @@ export default function CheckoutPage() {
   const [mounted, setMounted] = useState(false);
   const [placing, setPlacing] = useState(false);
   const [form, setForm] = useState<ShippingForm>(EMPTY_FORM);
+  const placingRef = useRef(false);
 
   useEffect(() => setMounted(true), []);
 
@@ -84,24 +132,24 @@ export default function CheckoutPage() {
     return true;
   };
 
-  const handlePlaceOrder = async () => {
+  const handlePay = async () => {
     if (!isAuthenticated) {
       router.push('/login?redirect=/checkout');
       return;
     }
     if (!validate()) return;
-    if (placing) return;
+    if (placingRef.current) return;
+    placingRef.current = true;
     setPlacing(true);
 
     try {
-      const orderItems = items.map((item) => ({
-        productId: item.productId,
-        variantId: item.variantId,
-        quantity: item.quantity,
-      }));
-
-      await api.post('/orders', {
-        items: orderItems,
+      // 1. Create order in our DB (status: pending)
+      const { data: order } = await api.post<{ data: { _id: string; orderNumber: string } }>('/orders', {
+        items: items.map((item) => ({
+          productId: item.productId,
+          variantId: item.variantId,
+          quantity: item.quantity,
+        })),
         shippingAddress: {
           fullName: form.fullName.trim(),
           phone: form.phone.trim(),
@@ -112,16 +160,83 @@ export default function CheckoutPage() {
           postalCode: form.postalCode.trim(),
           country: 'IN',
         },
-        paymentMethod: 'cod',
+        paymentMethod: 'razorpay',
       });
 
-      toast.success('Order placed successfully!');
-      router.push('/account/orders');
-      clearCart();
-    } catch {
-      toast.error('Failed to place order. Please try again.');
-    } finally {
+      const orderId: string = (order as unknown as { _id: string })._id;
+
+      // 2. Create Razorpay order on our backend
+      const { data: rzpData } = await api.post<{
+        data: { razorpayOrderId: string; amount: number; currency: string; keyId: string };
+      }>(`/orders/${orderId}/payment/initiate`);
+
+      const { razorpayOrderId, amount, currency, keyId } = rzpData as unknown as {
+        razorpayOrderId: string;
+        amount: number;
+        currency: string;
+        keyId: string;
+      };
+
+      // 3. Load Razorpay checkout script
+      const loaded = await loadRazorpayScript();
+      if (!loaded) {
+        toast.error('Failed to load payment gateway. Check your connection.');
+        setPlacing(false);
+        placingRef.current = false;
+        return;
+      }
+
+      // 4. Open Razorpay widget
+      const rzp = new window.Razorpay({
+        key: keyId,
+        amount,
+        currency,
+        name: 'Speffo',
+        description: `Order #${(order as unknown as { orderNumber: string }).orderNumber}`,
+        image: 'https://cdn.assets.speffo.in/brand/logo.png',
+        order_id: razorpayOrderId,
+        prefill: {
+          name: form.fullName.trim(),
+          contact: form.phone.trim(),
+        },
+        notes: { orderId },
+        theme: { color: '#1a3c2e' },
+        modal: {
+          ondismiss: () => {
+            toast.info('Payment cancelled. Your order is saved — you can retry from My Orders.');
+            setPlacing(false);
+            placingRef.current = false;
+            router.push('/account/orders');
+          },
+        },
+        handler: async (response: RazorpaySuccessResponse) => {
+          try {
+            // 5. Verify payment signature on our backend
+            await api.post(`/orders/${orderId}/payment/verify`, {
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+            });
+
+            toast.success('Payment successful! Order confirmed.');
+            clearCart();
+            router.push('/account/orders');
+          } catch {
+            toast.error('Payment received but verification failed. Contact support.');
+            router.push('/account/orders');
+          } finally {
+            setPlacing(false);
+            placingRef.current = false;
+          }
+        },
+      });
+
+      rzp.open();
+    } catch (err) {
+      const msg = (err as { message?: string }).message;
+      toast.error(msg ?? 'Failed to initiate payment. Please try again.');
       setPlacing(false);
+      placingRef.current = false;
     }
   };
 
@@ -154,12 +269,14 @@ export default function CheckoutPage() {
 
           <section className="rounded-sm border border-border p-6">
             <h2 className="text-base font-semibold uppercase tracking-[0.08em]">Payment</h2>
-            <p className="mt-3 text-sm text-muted-foreground">
-              Cash on delivery is available for all orders. Razorpay online payments coming soon.
-            </p>
-            <div className="mt-4 flex items-center gap-3 rounded-sm border border-forest/20 bg-forest/5 p-4">
-              <ShieldCheck className="h-5 w-5 shrink-0 text-forest" strokeWidth={1.6} />
-              <span className="text-sm text-foreground">Cash on Delivery — pay when you receive</span>
+            <div className="mt-4 flex items-start gap-3 rounded-sm border border-forest/20 bg-forest/5 p-4">
+              <CreditCard className="mt-0.5 h-5 w-5 shrink-0 text-forest" strokeWidth={1.6} />
+              <div>
+                <p className="text-sm font-medium text-foreground">Secure Online Payment via Razorpay</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  UPI · Cards · Net Banking · Wallets. 256-bit SSL encrypted.
+                </p>
+              </div>
             </div>
           </section>
         </div>
@@ -210,12 +327,12 @@ export default function CheckoutPage() {
           </div>
 
           <button
-            onClick={handlePlaceOrder}
+            onClick={handlePay}
             disabled={placing}
             className="mt-6 flex w-full cursor-pointer items-center justify-center gap-2 rounded-sm bg-forest px-4 py-4 text-[13px] font-semibold uppercase tracking-[0.14em] text-sand transition-colors hover:bg-forest-deep disabled:opacity-50"
           >
             <Lock className="h-4 w-4" />
-            {placing ? 'Placing Order…' : 'Place Order'}
+            {placing ? 'Processing…' : `Pay ₹${total.toLocaleString('en-IN')}`}
           </button>
 
           <div className="mt-4 flex items-center justify-center gap-4 text-xs text-muted-foreground">
@@ -223,7 +340,7 @@ export default function CheckoutPage() {
               <Truck className="h-3.5 w-3.5" /> Free over ₹{FREE_SHIPPING_THRESHOLD}
             </span>
             <span className="flex items-center gap-1.5">
-              <ShieldCheck className="h-3.5 w-3.5" /> Secure
+              <ShieldCheck className="h-3.5 w-3.5" /> SSL Secure
             </span>
           </div>
         </div>
