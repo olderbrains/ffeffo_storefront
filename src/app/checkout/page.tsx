@@ -116,7 +116,11 @@ export default function CheckoutPage() {
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!mounted) return;
+    if (!isAuthenticated) {
+      router.push('/login?redirect=/checkout');
+      return;
+    }
 
     async function fetchAddresses() {
       try {
@@ -136,9 +140,9 @@ export default function CheckoutPage() {
     }
 
     fetchAddresses();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, mounted, router]);
 
-  if (!mounted) return <div className="container py-8" />;
+  if (!mounted || !isAuthenticated) return <div className="container py-8" />;
 
   if (items.length === 0) {
     return (
@@ -228,14 +232,12 @@ export default function CheckoutPage() {
   }
 
   const handlePay = async () => {
-    if (!isAuthenticated) {
-      router.push('/login?redirect=/checkout');
-      return;
-    }
-
     if (showNewForm && !selectedAddressId) {
       const saved = await saveNewAddress();
       if (!saved) return;
+    } else if (!selectedAddressId && !showNewForm) {
+      toast.error('Please select a shipping address');
+      return;
     }
 
     if (!validate()) return;
