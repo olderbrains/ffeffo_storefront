@@ -144,7 +144,8 @@ export default function CheckoutPage() {
 
     try {
       // 1. Create order in our DB (status: pending)
-      const { data: order } = await api.post<{ data: { _id: string; orderNumber: string } }>('/orders', {
+      // api.post already unwraps response.data, so the return value IS the order object
+      const order = await api.post<{ _id: string; orderNumber: string }>('/orders', {
         items: items.map((item) => ({
           productId: item.productId,
           variantId: item.variantId,
@@ -163,19 +164,14 @@ export default function CheckoutPage() {
         paymentMethod: 'razorpay',
       });
 
-      const orderId: string = (order as unknown as { _id: string })._id;
+      const orderId: string = order._id;
 
       // 2. Create Razorpay order on our backend
-      const { data: rzpData } = await api.post<{
-        data: { razorpayOrderId: string; amount: number; currency: string; keyId: string };
-      }>(`/orders/${orderId}/payment/initiate`);
+      const rzpData = await api.post<{ razorpayOrderId: string; amount: number; currency: string; keyId: string }>(
+        `/orders/${orderId}/payment/initiate`,
+      );
 
-      const { razorpayOrderId, amount, currency, keyId } = rzpData as unknown as {
-        razorpayOrderId: string;
-        amount: number;
-        currency: string;
-        keyId: string;
-      };
+      const { razorpayOrderId, amount, currency, keyId } = rzpData;
 
       // 3. Load Razorpay checkout script
       const loaded = await loadRazorpayScript();
@@ -192,7 +188,7 @@ export default function CheckoutPage() {
         amount,
         currency,
         name: 'Speffo',
-        description: `Order #${(order as unknown as { orderNumber: string }).orderNumber}`,
+        description: `Order #${order.orderNumber}`,
         image: 'https://cdn.assets.speffo.in/brand/logo.png',
         order_id: razorpayOrderId,
         prefill: {
