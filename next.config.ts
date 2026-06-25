@@ -15,6 +15,19 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'cdn.assets.speffo.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'cdn.assets.speffo.in',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '5000',
+      },
     ],
   },
   experimental: {

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Fraunces, Inter } from 'next/font/google';
 import { Toaster } from 'sonner';
 
 import { Footer } from '@/components/layout/footer';
@@ -8,19 +8,31 @@ import { Providers } from '@/components/providers';
 
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  variable: '--font-fraunces',
+  display: 'swap',
+  style: ['normal', 'italic'],
+});
 
 export const metadata: Metadata = {
   title: {
-    default: 'Speffo - Premium Ecommerce Store',
+    default: 'Speffo — Designed for Detours',
     template: '%s | Speffo',
   },
-  description: 'Shop premium products with fast delivery. Browse our wide collection of quality products at competitive prices.',
-  keywords: ['ecommerce', 'online shopping', 'premium products', 'speffo'],
+  description:
+    'Considered, durable goods made for every kind of trip — from the weekend watering hole to a new city. Shop the latest arrivals at Speffo.',
+  keywords: ['sustainable', 'apparel', 'online shopping', 'considered design', 'speffo'],
+  icons: {
+    icon: '/logo.png',
+    apple: '/logo.png',
+  },
   openGraph: {
     type: 'website',
     locale: 'en_IN',
     siteName: 'Speffo',
+    images: [{ url: '/logo.png', width: 1200, height: 630, alt: 'Speffo' }],
   },
   robots: {
     index: true,
@@ -31,7 +43,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${fraunces.variable} font-sans antialiased`}>
         <Providers>
           <div className="flex min-h-screen flex-col">
             <Header />

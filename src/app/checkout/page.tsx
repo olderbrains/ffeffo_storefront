@@ -1,6 +1,8 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { Lock, ShieldCheck, Truck } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -14,10 +16,25 @@ interface ShippingForm {
   fullName: string;
   phone: string;
   addressLine1: string;
+  addressLine2: string;
   city: string;
   state: string;
-  pinCode: string;
+  postalCode: string;
 }
+
+const EMPTY_FORM: ShippingForm = {
+  fullName: '',
+  phone: '',
+  addressLine1: '',
+  addressLine2: '',
+  city: '',
+  state: '',
+  postalCode: '',
+};
+
+const FREE_SHIPPING_THRESHOLD = 999;
+const SHIPPING_CHARGE = 99;
+const TAX_RATE = 0.18;
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -28,14 +45,7 @@ export default function CheckoutPage() {
 
   const [mounted, setMounted] = useState(false);
   const [placing, setPlacing] = useState(false);
-  const [form, setForm] = useState<ShippingForm>({
-    fullName: '',
-    phone: '',
-    addressLine1: '',
-    city: '',
-    state: '',
-    pinCode: '',
-  });
+  const [form, setForm] = useState<ShippingForm>(EMPTY_FORM);
 
   useEffect(() => setMounted(true), []);
 
@@ -44,17 +54,21 @@ export default function CheckoutPage() {
   if (items.length === 0) {
     return (
       <div className="container py-20 text-center">
-        <h1 className="text-2xl font-bold">Your cart is empty</h1>
+        <h1 className="font-serif text-3xl font-semibold">Your cart is empty</h1>
         <p className="mt-2 text-muted-foreground">Add some products before checking out.</p>
         <Link
           href="/"
-          className="cursor-pointer mt-6 inline-block rounded-xl bg-gradient-to-r from-violet to-violet-dark px-6 py-3 text-sm font-medium text-white transition-all duration-300 hover:shadow-lg hover:shadow-violet/25"
+          className="mt-6 inline-block rounded-sm bg-forest px-6 py-3 text-sm font-medium text-sand transition-colors hover:bg-forest-deep"
         >
           Continue Shopping
         </Link>
       </div>
     );
   }
+
+  const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_CHARGE;
+  const tax = Math.round(subtotal * TAX_RATE);
+  const total = subtotal + shipping + tax;
 
   const updateField = (field: keyof ShippingForm, value: string) => {
     setForm((f) => ({ ...f, [field]: value }));
@@ -66,7 +80,7 @@ export default function CheckoutPage() {
     if (!form.addressLine1.trim()) { toast.error('Please enter your address'); return false; }
     if (!form.city.trim()) { toast.error('Please enter your city'); return false; }
     if (!form.state.trim()) { toast.error('Please enter your state'); return false; }
-    if (!form.pinCode.trim() || form.pinCode.trim().length < 6) { toast.error('Please enter a valid PIN code'); return false; }
+    if (!form.postalCode.trim() || form.postalCode.trim().length < 6) { toast.error('Please enter a valid PIN code'); return false; }
     return true;
   };
 
@@ -89,8 +103,17 @@ export default function CheckoutPage() {
 
       await api.post('/orders', {
         items: orderItems,
-        shippingAddress: form,
-        paymentMethod: 'razorpay',
+        shippingAddress: {
+          fullName: form.fullName.trim(),
+          phone: form.phone.trim(),
+          addressLine1: form.addressLine1.trim(),
+          addressLine2: form.addressLine2.trim() || undefined,
+          city: form.city.trim(),
+          state: form.state.trim(),
+          postalCode: form.postalCode.trim(),
+          country: 'IN',
+        },
+        paymentMethod: 'cod',
       });
 
       clearCart();
@@ -103,7 +126,8 @@ export default function CheckoutPage() {
     }
   };
 
-  const inputClass = "w-full rounded-xl border border-black/[0.08] bg-white px-4 py-3.5 text-sm outline-none transition-all duration-200 focus:border-violet/40 focus:ring-2 focus:ring-violet/20 placeholder:text-muted-foreground/60";
+  const inputClass =
+    'w-full rounded-sm border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-forest focus:ring-1 focus:ring-forest/30 placeholder:text-muted-foreground/60';
 
   return (
     <motion.div
@@ -112,45 +136,44 @@ export default function CheckoutPage() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >
-      <h1 className="text-3xl font-bold tracking-tight">Checkout</h1>
+      <h1 className="font-serif text-3xl font-semibold tracking-tight">Checkout</h1>
 
       <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
-          <section className="glass-card p-6">
-            <h2 className="text-lg font-semibold mb-5">Shipping Address</h2>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <input type="text" placeholder="Full Name" value={form.fullName} onChange={(e) => updateField('fullName', e.target.value)} className={inputClass} />
-              <input type="tel" placeholder="Phone Number" value={form.phone} onChange={(e) => updateField('phone', e.target.value)} className={inputClass} />
-              <input type="text" placeholder="Address Line 1" value={form.addressLine1} onChange={(e) => updateField('addressLine1', e.target.value)} className={`${inputClass} sm:col-span-2`} />
-              <input type="text" placeholder="City" value={form.city} onChange={(e) => updateField('city', e.target.value)} className={inputClass} />
-              <input type="text" placeholder="State" value={form.state} onChange={(e) => updateField('state', e.target.value)} className={inputClass} />
-              <input type="text" placeholder="PIN Code" value={form.pinCode} onChange={(e) => updateField('pinCode', e.target.value)} className={inputClass} />
+          <section className="rounded-sm border border-border p-6">
+            <h2 className="text-base font-semibold uppercase tracking-[0.08em]">Shipping Address</h2>
+            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <input type="text" placeholder="Full Name *" value={form.fullName} onChange={(e) => updateField('fullName', e.target.value)} className={inputClass} />
+              <input type="tel" placeholder="Phone Number *" value={form.phone} onChange={(e) => updateField('phone', e.target.value)} className={inputClass} />
+              <input type="text" placeholder="Address Line 1 *" value={form.addressLine1} onChange={(e) => updateField('addressLine1', e.target.value)} className={`${inputClass} sm:col-span-2`} />
+              <input type="text" placeholder="Address Line 2 (optional)" value={form.addressLine2} onChange={(e) => updateField('addressLine2', e.target.value)} className={`${inputClass} sm:col-span-2`} />
+              <input type="text" placeholder="City *" value={form.city} onChange={(e) => updateField('city', e.target.value)} className={inputClass} />
+              <input type="text" placeholder="State *" value={form.state} onChange={(e) => updateField('state', e.target.value)} className={inputClass} />
+              <input type="text" placeholder="PIN Code *" value={form.postalCode} onChange={(e) => updateField('postalCode', e.target.value)} className={inputClass} />
             </div>
           </section>
 
-          <section className="glass-card p-6">
-            <h2 className="text-lg font-semibold mb-3">Payment Method</h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              You will be redirected to Razorpay to complete payment securely.
+          <section className="rounded-sm border border-border p-6">
+            <h2 className="text-base font-semibold uppercase tracking-[0.08em]">Payment</h2>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Cash on delivery is available for all orders. Razorpay online payments coming soon.
             </p>
-            <div className="flex flex-wrap gap-2">
-              {['UPI', 'Debit Card', 'Credit Card', 'Net Banking', 'Wallets', 'EMI'].map((m) => (
-                <span key={m} className="rounded-lg border border-black/[0.08] bg-secondary/30 px-3 py-1.5 text-xs text-muted-foreground">{m}</span>
-              ))}
+            <div className="mt-4 flex items-center gap-3 rounded-sm border border-forest/20 bg-forest/5 p-4">
+              <ShieldCheck className="h-5 w-5 shrink-0 text-forest" strokeWidth={1.6} />
+              <span className="text-sm text-foreground">Cash on Delivery — pay when you receive</span>
             </div>
           </section>
         </div>
 
         {/* Order summary */}
-        <div className="h-fit glass-card p-6">
-          <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
-          <div className="space-y-3">
+        <div className="h-fit rounded-sm border border-border p-6 lg:sticky lg:top-28">
+          <h2 className="text-base font-semibold uppercase tracking-[0.08em]">Order Summary</h2>
+          <div className="mt-5 space-y-3">
             {items.map((item) => (
               <div key={item.variantId} className="flex gap-3">
-                <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-black/[0.05] bg-secondary/30">
+                <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-sm border border-border bg-secondary">
                   {item.image && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+                    <Image src={item.image} alt={item.name} fill className="object-cover" sizes="56px" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -166,28 +189,44 @@ export default function CheckoutPage() {
             ))}
           </div>
 
-          <div className="mt-6 space-y-2 border-t border-black/[0.04] pt-4 text-sm">
+          <div className="mt-6 space-y-2 border-t border-border pt-4 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Subtotal</span>
               <span>₹{subtotal.toLocaleString('en-IN')}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Shipping</span>
-              <span className="text-cyan">Free</span>
+              <span className={shipping === 0 ? 'text-forest font-medium' : ''}>
+                {shipping === 0 ? 'Free' : `₹${shipping}`}
+              </span>
             </div>
-            <div className="flex justify-between border-t border-black/[0.04] pt-2 font-semibold">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Tax (18% GST)</span>
+              <span>₹{tax.toLocaleString('en-IN')}</span>
+            </div>
+            <div className="flex justify-between border-t border-border pt-2 font-semibold text-base">
               <span>Total</span>
-              <span className="text-gradient-violet">₹{subtotal.toLocaleString('en-IN')}</span>
+              <span className="text-forest">₹{total.toLocaleString('en-IN')}</span>
             </div>
           </div>
 
           <button
             onClick={handlePlaceOrder}
             disabled={placing}
-            className="cursor-pointer mt-6 w-full rounded-xl bg-gradient-to-r from-violet to-violet-dark px-4 py-3.5 text-sm font-medium text-white transition-all duration-300 hover:shadow-lg hover:shadow-violet/25 disabled:opacity-50"
+            className="mt-6 flex w-full cursor-pointer items-center justify-center gap-2 rounded-sm bg-forest px-4 py-4 text-[13px] font-semibold uppercase tracking-[0.14em] text-sand transition-colors hover:bg-forest-deep disabled:opacity-50"
           >
-            {placing ? 'Placing Order…' : 'Place Order & Pay'}
+            <Lock className="h-4 w-4" />
+            {placing ? 'Placing Order…' : 'Place Order'}
           </button>
+
+          <div className="mt-4 flex items-center justify-center gap-4 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <Truck className="h-3.5 w-3.5" /> Free over ₹{FREE_SHIPPING_THRESHOLD}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <ShieldCheck className="h-3.5 w-3.5" /> Secure
+            </span>
+          </div>
         </div>
       </div>
     </motion.div>

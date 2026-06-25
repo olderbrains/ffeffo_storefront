@@ -1,7 +1,8 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Menu, Search, ShoppingCart, User, X } from 'lucide-react';
+import { Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
@@ -9,9 +10,16 @@ import { selectCartCount, useCartStore } from '@/lib/stores/cart-store';
 import { cn } from '@/lib/utils';
 
 const navigation = [
-  { name: 'Home', href: '/' },
-  { name: 'Categories', href: '/categories' },
+  { name: 'New In', href: '/search?sort=newest' },
+  { name: 'Shop', href: '/categories' },
   { name: 'Brands', href: '/brands' },
+  { name: 'Sale', href: '/search?sale=true' },
+];
+
+const announcements = [
+  'Complimentary shipping on orders over ₹2,000',
+  'Designed for Detours — built to last, made to wander',
+  '30-day easy returns on every order',
 ];
 
 export function Header() {
@@ -22,115 +30,133 @@ export function Header() {
 
   useEffect(() => {
     setMounted(true);
-    const handleScroll = () => setScrolled(window.scrollY > 30);
+    const handleScroll = () => setScrolled(window.scrollY > 8);
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   return (
     <>
-      <motion.header
-        className={cn(
-          'fixed top-0 left-0 right-0 z-50 transition-all duration-500',
-          scrolled ? 'py-2' : 'py-3',
-        )}
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.7, delay: 0.2, ease: [0.25, 0.4, 0.25, 1] }}
-      >
-        <div className="container">
-          <div
-            className={cn(
-              'flex items-center justify-between rounded-2xl px-6 py-3 transition-all duration-500',
-              scrolled
-                ? 'glass shadow-md shadow-black/[0.03]'
-                : 'bg-transparent border border-transparent',
-            )}
-          >
-            <div className="flex items-center gap-8">
-              <button
-                className="lg:hidden cursor-pointer text-foreground/60 hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                aria-label="Toggle menu"
-              >
-                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </button>
-
-              <Link href="/" className="flex items-center gap-2.5 cursor-pointer group">
-                <div className="relative h-8 w-8">
-                  <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-violet to-cyan opacity-90 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute inset-[2px] rounded-[6px] bg-white flex items-center justify-center">
-                    <span className="text-sm font-bold text-gradient">S</span>
-                  </div>
-                </div>
-                <span className="text-lg font-bold tracking-tight text-foreground">Speffo</span>
-              </Link>
-
-              <nav className="hidden lg:flex lg:gap-1">
-                {navigation.map((item) => (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className="cursor-pointer px-4 py-2 text-sm font-medium text-muted-foreground rounded-lg transition-all duration-200 hover:text-foreground hover:bg-black/[0.03]"
+      <header className="fixed top-0 left-0 right-0 z-50">
+        {/* Announcement marquee */}
+        <div className="bg-forest text-sand overflow-hidden">
+          <div className="container py-2">
+            <div className="flex items-center justify-center gap-16 overflow-hidden whitespace-nowrap">
+              <div className="flex shrink-0 items-center gap-16 animate-marquee">
+                {[...announcements, ...announcements].map((line, i) => (
+                  <span
+                    key={i}
+                    className="text-[11px] uppercase tracking-[0.22em] text-sand/90"
                   >
-                    {item.name}
-                  </Link>
+                    {line}
+                  </span>
                 ))}
-              </nav>
-            </div>
-
-            <div className="flex items-center gap-1">
-              <Link
-                href="/search"
-                className="cursor-pointer flex items-center justify-center h-9 w-9 rounded-lg text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-black/[0.03]"
-                aria-label="Search"
-              >
-                <Search className="h-[18px] w-[18px]" />
-              </Link>
-
-              <Link
-                href="/account/wishlist"
-                className="cursor-pointer hidden sm:flex items-center justify-center h-9 w-9 rounded-lg text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-black/[0.03]"
-                aria-label="Wishlist"
-              >
-                <Heart className="h-[18px] w-[18px]" />
-              </Link>
-
-              <Link
-                href="/cart"
-                className="cursor-pointer relative flex items-center justify-center h-9 w-9 rounded-lg text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-black/[0.03]"
-                aria-label="Cart"
-              >
-                <ShoppingCart className="h-[18px] w-[18px]" />
-                {mounted && cartCount > 0 && (
-                  <motion.span
-                    className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gradient-to-r from-violet to-cyan px-1 text-[10px] font-bold text-white"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-                  >
-                    {cartCount}
-                  </motion.span>
-                )}
-              </Link>
-
-              <Link
-                href="/account"
-                className="cursor-pointer flex items-center justify-center h-9 w-9 rounded-lg text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-black/[0.03]"
-                aria-label="Account"
-              >
-                <User className="h-[18px] w-[18px]" />
-              </Link>
+              </div>
             </div>
           </div>
         </div>
-      </motion.header>
+
+        {/* Main bar */}
+        <div
+          className={cn(
+            'border-b transition-all duration-300',
+            scrolled
+              ? 'border-border bg-[hsl(38_36%_94%/0.9)] backdrop-blur-md shadow-[0_1px_20px_rgba(0,0,0,0.04)]'
+              : 'border-transparent bg-background',
+          )}
+        >
+          <div className="container">
+            <div className="grid h-16 grid-cols-[1fr_auto_1fr] items-center">
+              {/* Left: nav (desktop) / menu (mobile) */}
+              <div className="flex items-center">
+                <button
+                  className="lg:hidden cursor-pointer -ml-1 p-1 text-foreground/70 hover:text-foreground transition-colors"
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  aria-label="Toggle menu"
+                >
+                  {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                </button>
+
+                <nav className="hidden lg:flex lg:items-center lg:gap-7">
+                  {navigation.map((item) => (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className="link-underline cursor-pointer text-[13px] font-medium uppercase tracking-[0.12em] text-foreground/75 transition-colors hover:text-foreground"
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </nav>
+              </div>
+
+              {/* Center: wordmark */}
+              <Link
+                href="/"
+                className="cursor-pointer select-none text-center flex items-center justify-center"
+                aria-label="Speffo home"
+              >
+                <Image
+                  src="/logo.png"
+                  alt="Speffo"
+                  width={100}
+                  height={36}
+                  className="h-8 w-auto object-contain"
+                  priority
+                />
+              </Link>
+
+              {/* Right: actions */}
+              <div className="flex items-center justify-end gap-0.5">
+                <Link
+                  href="/search"
+                  className="cursor-pointer flex h-9 w-9 items-center justify-center rounded-md text-foreground/70 transition-colors hover:bg-black/[0.04] hover:text-foreground"
+                  aria-label="Search"
+                >
+                  <Search className="h-[19px] w-[19px]" strokeWidth={1.6} />
+                </Link>
+                <Link
+                  href="/account/wishlist"
+                  className="cursor-pointer hidden h-9 w-9 items-center justify-center rounded-md text-foreground/70 transition-colors hover:bg-black/[0.04] hover:text-foreground sm:flex"
+                  aria-label="Wishlist"
+                >
+                  <Heart className="h-[19px] w-[19px]" strokeWidth={1.6} />
+                </Link>
+                <Link
+                  href="/account"
+                  className="cursor-pointer hidden h-9 w-9 items-center justify-center rounded-md text-foreground/70 transition-colors hover:bg-black/[0.04] hover:text-foreground sm:flex"
+                  aria-label="Account"
+                >
+                  <User className="h-[19px] w-[19px]" strokeWidth={1.6} />
+                </Link>
+                <Link
+                  href="/cart"
+                  className="cursor-pointer relative flex h-9 w-9 items-center justify-center rounded-md text-foreground/70 transition-colors hover:bg-black/[0.04] hover:text-foreground"
+                  aria-label="Cart"
+                >
+                  <ShoppingBag className="h-[19px] w-[19px]" strokeWidth={1.6} />
+                  {mounted && cartCount > 0 && (
+                    <motion.span
+                      className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-clay px-1 text-[10px] font-semibold text-sand"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                    >
+                      {cartCount}
+                    </motion.span>
+                  )}
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
 
       {/* Mobile menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            className="fixed inset-0 z-40 bg-white/95 backdrop-blur-xl flex flex-col items-center justify-center gap-6 lg:hidden"
+            className="fixed inset-0 z-40 flex flex-col items-center justify-center gap-7 bg-background/97 backdrop-blur-xl lg:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -142,23 +168,36 @@ export function Header() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
-                transition={{ delay: i * 0.08 }}
+                transition={{ delay: i * 0.07 }}
               >
                 <Link
                   href={item.href}
-                  className="text-2xl font-semibold cursor-pointer text-foreground transition-colors hover:text-violet"
+                  className="cursor-pointer font-serif text-3xl font-medium text-foreground transition-colors hover:text-clay"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {item.name}
                 </Link>
               </motion.div>
             ))}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="mt-4 flex items-center gap-6 text-sm text-muted-foreground"
+            >
+              <Link href="/account" onClick={() => setMobileMenuOpen(false)} className="cursor-pointer hover:text-foreground">
+                Account
+              </Link>
+              <Link href="/account/wishlist" onClick={() => setMobileMenuOpen(false)} className="cursor-pointer hover:text-foreground">
+                Wishlist
+              </Link>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Spacer for fixed header */}
-      <div className="h-20" />
+      {/* Spacer for fixed header (announcement ~33px + bar 64px) */}
+      <div className="h-[97px]" />
     </>
   );
 }

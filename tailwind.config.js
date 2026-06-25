@@ -1,6 +1,5 @@
-import type { Config } from 'tailwindcss';
-
-const config: Config = {
+/** @type {import('tailwindcss').Config} */
+module.exports = {
   darkMode: ['class'],
   content: ['./src/**/*.{ts,tsx}'],
   theme: {
@@ -12,6 +11,10 @@ const config: Config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        serif: ['var(--font-fraunces)', 'Georgia', 'Times New Roman', 'serif'],
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
@@ -46,18 +49,32 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        /* Earth palette. Legacy keys remapped so existing utilities stay on-brand. */
         violet: {
-          DEFAULT: '#7c3aed',
-          light: '#8b5cf6',
-          dark: '#6d28d9',
+          DEFAULT: '#39492F',
+          light: '#4C6052',
+          dark: '#222E1C',
         },
         cyan: {
-          DEFAULT: '#0891b2',
-          light: '#06b6d4',
+          DEFAULT: '#B5663F',
+          light: '#C77E5C',
         },
         pink: {
-          DEFAULT: '#db2777',
-          light: '#ec4899',
+          DEFAULT: '#A0524B',
+          light: '#B86A63',
+        },
+        forest: {
+          DEFAULT: '#39492F',
+          deep: '#222E1C',
+          soft: '#4C6052',
+        },
+        clay: {
+          DEFAULT: '#B5663F',
+          soft: '#C77E5C',
+        },
+        sand: {
+          DEFAULT: '#F2EBDD',
+          deep: '#E6DCC8',
         },
       },
       borderRadius: {
@@ -83,5 +100,3 @@ const config: Config = {
   },
   plugins: [require('tailwindcss-animate')],
 };
-
-export default config;

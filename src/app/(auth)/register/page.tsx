@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -85,11 +86,16 @@ export default function RegisterPage() {
         transition={{ duration: 0.6 }}
       >
         <div className="text-center mb-8">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-violet/20 to-cyan/20 mb-4">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-violet to-cyan opacity-80 flex items-center justify-center">
-              <span className="text-sm font-bold text-white">S</span>
-            </div>
-          </div>
+          <Link href="/" className="inline-block mb-4">
+            <Image
+              src="/logo.png"
+              alt="Speffo"
+              width={120}
+              height={44}
+              className="h-10 w-auto object-contain mx-auto"
+              priority
+            />
+          </Link>
           <h1 className="text-2xl font-bold">Create Account</h1>
           <p className="mt-2 text-sm text-muted-foreground">Join Speffo and start shopping</p>
         </div>

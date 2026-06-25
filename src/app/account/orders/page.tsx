@@ -43,7 +43,7 @@ export default function OrdersPage() {
     }
     (async () => {
       try {
-        const data = await api.get<{ data: Order[] }>('/orders?limit=20&sortBy=createdAt&sortOrder=desc');
+        const data = await api.get<{ data: Order[] }>('/orders/my?limit=20');
         setOrders(data.data || []);
       } catch {
         toast.error('Failed to load orders');
@@ -123,7 +123,7 @@ export default function OrdersPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-semibold">
-                    ₹{(order.total / 100).toLocaleString('en-IN')}
+                    ₹{order.total.toLocaleString('en-IN')}
                   </span>
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[order.status] || 'bg-gray-100 text-gray-800'}`}

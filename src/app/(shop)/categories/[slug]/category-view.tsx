@@ -1,10 +1,11 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ChevronRight, Star } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 
+import { ProductCard, type CardProduct } from '@/components/product/product-card';
 import { api, ApiError } from '@/lib/api/client';
 
 interface Category {
@@ -16,16 +17,7 @@ interface Category {
   productCount?: number;
 }
 
-interface Product {
-  _id: string;
-  name: string;
-  slug: string;
-  basePrice: number;
-  salePrice?: number;
-  images: { url: string; alt?: string }[];
-  ratings: { average: number; count: number };
-  brandId?: { name: string };
-}
+type Product = CardProduct;
 
 interface Pagination {
   total: number;
@@ -72,7 +64,9 @@ export function CategoryView({ slug }: { slug: string }) {
         setStatus(err instanceof ApiError && err.statusCode === 404 ? 'notfound' : 'error');
       }
     })();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [slug]);
 
   const loadProducts = useCallback(
@@ -109,9 +103,9 @@ export function CategoryView({ slug }: { slug: string }) {
   if (status === 'notfound') {
     return (
       <div className="container py-20 text-center">
-        <h1 className="text-2xl font-bold">Category not found</h1>
+        <h1 className="font-serif text-3xl font-semibold">Category not found</h1>
         <p className="mt-2 text-muted-foreground">The category you&apos;re looking for doesn&apos;t exist.</p>
-        <Link href="/" className="mt-6 inline-block text-sm font-medium text-violet hover:underline cursor-pointer">
+        <Link href="/" className="mt-6 inline-block text-sm font-medium text-forest hover:underline">
           &larr; Back to home
         </Link>
       </div>
@@ -121,172 +115,113 @@ export function CategoryView({ slug }: { slug: string }) {
   return (
     <motion.div
       className="container py-8"
-      initial={{ opacity: 0, y: 15 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >
       {/* Breadcrumb */}
-      <nav className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground">
-        <Link href="/" className="cursor-pointer hover:text-foreground transition-colors">Home</Link>
-        <ChevronRight className="h-3.5 w-3.5" />
+      <nav className="mb-6 flex items-center gap-1.5 text-xs uppercase tracking-[0.08em] text-muted-foreground">
+        <Link href="/" className="hover:text-foreground">Home</Link>
+        <ChevronRight className="h-3 w-3" />
         <span className="text-foreground/70">{title}</span>
       </nav>
 
-      <div className="mb-10">
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">{title}</h1>
+      <div className="mb-10 text-center sm:text-left">
+        <h1 className="font-serif text-4xl font-semibold tracking-tight sm:text-5xl">{title}</h1>
         {category?.description && (
-          <p className="mt-2 text-muted-foreground max-w-2xl">{category.description}</p>
+          <p className="mt-3 max-w-2xl text-muted-foreground sm:mx-0">{category.description}</p>
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
-        {/* Sidebar */}
-        <aside className="space-y-6">
-          {children.length > 0 && (
-            <div className="glass-card p-5">
-              <h3 className="font-semibold text-sm mb-3">Subcategories</h3>
-              <ul className="space-y-1.5">
-                {children.map((c) => (
-                  <li key={c._id}>
-                    <Link
-                      href={`/categories/${c.slug}`}
-                      className="cursor-pointer block px-3 py-2 rounded-lg text-sm text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-black/[0.03]"
-                    >
-                      {c.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </aside>
+      {/* Subcategory pills */}
+      {children.length > 0 && (
+        <div className="mb-8 flex flex-wrap gap-2 border-y border-border py-4">
+          {children.map((c) => (
+            <Link
+              key={c._id}
+              href={`/categories/${c.slug}`}
+              className="rounded-sm border border-border px-4 py-2 text-xs font-medium uppercase tracking-[0.08em] text-foreground/75 transition-colors hover:border-forest/50 hover:text-forest"
+            >
+              {c.name}
+            </Link>
+          ))}
+        </div>
+      )}
 
-        {/* Products */}
-        <div className="lg:col-span-3">
-          <div className="mb-6 flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
-              {status === 'ready' && pagination
-                ? `${pagination.total} ${pagination.total === 1 ? 'product' : 'products'}`
-                : 'Loading…'}
-            </p>
-            <label className="flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground hidden sm:inline">Sort:</span>
-              <select
-                value={sortIdx}
-                onChange={(e) => setSortIdx(Number(e.target.value))}
-                className="cursor-pointer rounded-xl border border-black/[0.08] bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-violet/40"
-              >
-                {SORTS.map((s, i) => (
-                  <option key={s.label} value={i}>{s.label}</option>
-                ))}
-              </select>
-            </label>
+      <div className="mb-6 flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {status === 'ready' && pagination
+            ? `${pagination.total} ${pagination.total === 1 ? 'style' : 'styles'}`
+            : 'Loading…'}
+        </p>
+        <label className="flex items-center gap-2 text-sm">
+          <span className="hidden uppercase tracking-[0.08em] text-muted-foreground sm:inline">Sort</span>
+          <select
+            value={sortIdx}
+            onChange={(e) => setSortIdx(Number(e.target.value))}
+            className="cursor-pointer rounded-sm border border-border bg-card px-3 py-2 text-sm outline-none transition-colors focus:border-forest/50"
+          >
+            {SORTS.map((s, i) => (
+              <option key={s.label} value={i}>{s.label}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      {status === 'error' && (
+        <div className="rounded-sm border border-border p-8 text-center">
+          <p className="text-sm text-destructive">Couldn&apos;t load products. Please try again.</p>
+          <button
+            onClick={() => loadProducts(1, true)}
+            className="mt-4 cursor-pointer rounded-sm border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-secondary"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {status === 'loading' && (
+        <div className="grid grid-cols-2 gap-x-4 gap-y-9 sm:grid-cols-3 lg:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="space-y-3">
+              <div className="aspect-[4/5] animate-pulse rounded-sm bg-secondary" />
+              <div className="h-3 w-1/2 animate-pulse rounded bg-secondary" />
+              <div className="h-4 w-3/4 animate-pulse rounded bg-secondary" />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {status === 'ready' && products.length === 0 && (
+        <div className="rounded-sm border border-border p-12 text-center">
+          <p className="font-medium">No products in this category yet</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Check back soon — we&apos;re adding new styles all the time.
+          </p>
+        </div>
+      )}
+
+      {status === 'ready' && products.length > 0 && (
+        <>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-9 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4">
+            {products.map((product, i) => (
+              <ProductCard key={product._id} product={product} index={i} />
+            ))}
           </div>
 
-          {status === 'error' && (
-            <div className="glass-card p-8 text-center">
-              <p className="text-sm text-destructive">Couldn&apos;t load products. Please try again.</p>
+          {hasMore && (
+            <div className="mt-12 text-center">
               <button
-                onClick={() => loadProducts(1, true)}
-                className="cursor-pointer mt-4 rounded-xl border border-black/[0.08] px-4 py-2 text-sm font-medium hover:bg-black/[0.03] transition-colors"
+                onClick={() => loadProducts((pagination?.page || 1) + 1, false)}
+                disabled={loadingMore}
+                className="cursor-pointer rounded-sm border border-forest px-10 py-3.5 text-[13px] font-semibold uppercase tracking-[0.12em] text-forest transition-colors hover:bg-forest hover:text-sand disabled:opacity-50"
               >
-                Retry
+                {loadingMore ? 'Loading…' : 'Load more'}
               </button>
             </div>
           )}
-
-          {status === 'loading' && (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              {Array.from({ length: 9 }).map((_, i) => (
-                <div key={i} className="space-y-3">
-                  <div className="aspect-square rounded-2xl bg-secondary animate-pulse" />
-                  <div className="h-4 w-3/4 rounded bg-secondary animate-pulse" />
-                  <div className="h-4 w-1/2 rounded bg-secondary animate-pulse" />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {status === 'ready' && products.length === 0 && (
-            <div className="glass-card p-12 text-center">
-              <p className="font-medium">No products in this category yet</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Check back soon — we&apos;re adding new products all the time.
-              </p>
-            </div>
-          )}
-
-          {status === 'ready' && products.length > 0 && (
-            <>
-              <div className="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-3">
-                {products.map((product, i) => (
-                  <motion.div
-                    key={product._id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: i * 0.04 }}
-                  >
-                    <Link
-                      href={`/products/${product.slug}`}
-                      className="cursor-pointer group block space-y-3"
-                    >
-                      <div className="relative aspect-square overflow-hidden rounded-2xl border border-black/[0.05] bg-secondary/30 transition-all duration-500 group-hover:border-black/15 group-hover:shadow-lg group-hover:shadow-violet/5">
-                        {product.images[0] && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={product.images[0].url}
-                            alt={product.images[0].alt || product.name}
-                            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                          />
-                        )}
-                        {product.salePrice && product.salePrice < product.basePrice && (
-                          <div className="absolute top-3 left-3 rounded-full bg-gradient-to-r from-pink to-violet px-2.5 py-0.5 text-[10px] font-bold text-white">
-                            SALE
-                          </div>
-                        )}
-                      </div>
-                      <div className="space-y-1 px-1">
-                        <h3 className="text-sm font-medium line-clamp-2 transition-colors group-hover:text-violet">{product.name}</h3>
-                        {product.brandId && (
-                          <p className="text-xs text-muted-foreground">{product.brandId.name}</p>
-                        )}
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold">
-                            ₹{(product.salePrice || product.basePrice).toLocaleString('en-IN')}
-                          </span>
-                          {product.salePrice && product.salePrice < product.basePrice && (
-                            <span className="text-xs text-muted-foreground line-through">
-                              ₹{product.basePrice.toLocaleString('en-IN')}
-                            </span>
-                          )}
-                          {product.ratings.count > 0 && (
-                            <span className="ml-auto flex items-center gap-0.5 text-xs text-muted-foreground">
-                              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                              {product.ratings.average}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </Link>
-                  </motion.div>
-                ))}
-              </div>
-
-              {hasMore && (
-                <div className="mt-10 text-center">
-                  <button
-                    onClick={() => loadProducts((pagination?.page || 1) + 1, false)}
-                    disabled={loadingMore}
-                    className="cursor-pointer rounded-xl border border-black/[0.08] px-8 py-3 text-sm font-medium transition-all duration-200 hover:bg-black/[0.03] hover:border-black/15 disabled:opacity-50"
-                  >
-                    {loadingMore ? 'Loading…' : 'Load more'}
-                  </button>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      </div>
+        </>
+      )}
     </motion.div>
   );
 }

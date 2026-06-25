@@ -7,10 +7,14 @@ import { toast } from 'sonner';
 import { api } from '@/lib/api/client';
 
 interface OrderItem {
-  productId: { name: string; slug: string };
-  variantId?: { sku: string; attributes: { name: string; value: string }[] };
+  productName: string;
+  variantName?: string;
+  sku: string;
+  attributes?: { name: string; value: string }[];
   quantity: number;
-  price: number;
+  unitPrice: number;
+  salePrice: number;
+  total: number;
   image?: string;
 }
 
@@ -20,7 +24,7 @@ interface ShippingAddress {
   addressLine1: string;
   city: string;
   state: string;
-  pinCode: string;
+  postalCode: string;
 }
 
 interface StatusHistory {
@@ -50,7 +54,7 @@ function OrderDetail({ id }: { id: string }) {
   useEffect(() => {
     (async () => {
       try {
-        const data = await api.get<Order>(`/orders/${id}`);
+        const data = await api.get<Order>(`/orders/my/${id}`);
         setOrder(data);
       } catch {
         toast.error('Failed to load order details');
@@ -168,19 +172,20 @@ function OrderDetail({ id }: { id: string }) {
             <div key={i} className="flex gap-4">
               <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md border bg-muted">
                 {item.image && (
-                  <img src={item.image} alt={item.productId?.name} className="h-full w-full object-cover" />
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={item.image} alt={item.productName} className="h-full w-full object-cover" />
                 )}
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium">{item.productId?.name}</p>
-                {item.variantId?.attributes && (
+                <p className="text-sm font-medium">{item.productName}</p>
+                {item.attributes && item.attributes.length > 0 && (
                   <p className="text-xs text-muted-foreground">
-                    {item.variantId.attributes.map((a) => a.value).join(' / ')}
+                    {item.attributes.map((a) => a.value).join(' / ')}
                   </p>
                 )}
                 <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
               </div>
-              <p className="text-sm font-medium">₹{(item.price / 100).toLocaleString('en-IN')}</p>
+              <p className="text-sm font-medium">₹{item.total.toLocaleString('en-IN')}</p>
             </div>
           ))}
         </div>
@@ -193,7 +198,7 @@ function OrderDetail({ id }: { id: string }) {
             <p className="font-medium text-foreground">{order.shippingAddress?.fullName}</p>
             <p>{order.shippingAddress?.addressLine1}</p>
             <p>
-              {order.shippingAddress?.city}, {order.shippingAddress?.state} — {order.shippingAddress?.pinCode}
+              {order.shippingAddress?.city}, {order.shippingAddress?.state} — {order.shippingAddress?.postalCode}
             </p>
             <p>{order.shippingAddress?.phone}</p>
           </div>
@@ -204,15 +209,15 @@ function OrderDetail({ id }: { id: string }) {
           <div className="mt-3 space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Subtotal</span>
-              <span>₹{(order.subtotal / 100).toLocaleString('en-IN')}</span>
+              <span>₹{order.subtotal.toLocaleString('en-IN')}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Shipping</span>
-              <span>{order.shippingCharge ? `₹${(order.shippingCharge / 100).toLocaleString('en-IN')}` : 'Free'}</span>
+              <span>{order.shippingCharge ? `₹${order.shippingCharge.toLocaleString('en-IN')}` : 'Free'}</span>
             </div>
             <div className="flex justify-between border-t pt-2 font-semibold">
               <span>Total</span>
-              <span>₹{(order.total / 100).toLocaleString('en-IN')}</span>
+              <span>₹{order.total.toLocaleString('en-IN')}</span>
             </div>
           </div>
         </div>

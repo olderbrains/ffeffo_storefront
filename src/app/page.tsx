@@ -1,11 +1,12 @@
 'use client';
 
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
-import { ArrowRight, Star, Sparkles, Truck, Shield, Undo2 } from 'lucide-react';
+import { ArrowRight, Leaf, RotateCcw, ShieldCheck, Truck } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
 import { api } from '@/lib/api/client';
+import { ProductCard, type CardProduct } from '@/components/product/product-card';
 
 interface Category {
   _id: string;
@@ -15,251 +16,278 @@ interface Category {
   productCount: number;
 }
 
-interface Product {
-  _id: string;
-  name: string;
-  slug: string;
-  basePrice: number;
-  salePrice?: number;
-  images: { url: string; alt?: string; isDefault: boolean }[];
-  ratings: { average: number; count: number };
-  brandId?: { name: string };
-}
+type Product = CardProduct;
 
 interface Banner {
   _id: string;
   title: string;
   subtitle?: string;
-  imageUrl: string;
+  image: { desktop: string; mobile: string };
   link?: string;
-  position: number;
+  position: string;
+  priority: number;
 }
 
+/* ------------------------------------------------------------------ */
+/* Hero — full-bleed editorial image with overlaid headline           */
+/* ------------------------------------------------------------------ */
 function HeroSection({ banners }: { banners: Banner[] }) {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ['start start', 'end start'],
   });
-  const y = useTransform(scrollYProgress, [0, 1], ['0%', '30%']);
-  const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+  const y = useTransform(scrollYProgress, [0, 1], ['0%', '18%']);
+  const overlay = useTransform(scrollYProgress, [0, 1], [0.42, 0.7]);
 
-  const activeBanner = banners[0];
+  const banner = banners[0];
+  const title = banner?.title ?? 'Designed for Detours';
+  const subtitle =
+    banner?.subtitle ??
+    'Considered, durable goods for every kind of trip — from the weekend watering hole to exploring a new city.';
+  const heroImage =
+    banner?.image?.desktop ??
+    'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=2000&q=80';
+  const ctaHref = banner?.link ?? '/search?sort=newest';
 
   return (
-    <section ref={ref} className="relative min-h-[85vh] flex items-center overflow-hidden -mt-20 pt-20">
-      {/* Soft aurora background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-1/2 -left-1/2 w-[200%] h-[200%]">
-          <div
-            className="absolute top-[30%] left-[30%] w-[500px] h-[500px] rounded-full opacity-[0.08] animate-aurora"
-            style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.5) 0%, transparent 70%)' }}
-          />
-          <div
-            className="absolute top-[40%] right-[25%] w-[400px] h-[400px] rounded-full opacity-[0.06] animate-aurora"
-            style={{ background: 'radial-gradient(circle, rgba(6,182,212,0.4) 0%, transparent 70%)', animationDelay: '-5s' }}
-          />
-          <div
-            className="absolute bottom-[30%] left-[40%] w-[350px] h-[350px] rounded-full opacity-[0.05] animate-aurora"
-            style={{ background: 'radial-gradient(circle, rgba(236,72,153,0.3) 0%, transparent 70%)', animationDelay: '-10s' }}
-          />
+    <section ref={ref} className="relative h-[88vh] min-h-[560px] overflow-hidden bg-forest-deep">
+      {/* Background image with parallax */}
+      <motion.div className="absolute inset-0" style={{ y }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={heroImage}
+          alt={title}
+          className="h-[118%] w-full object-cover"
+        />
+      </motion.div>
+
+      {/* Tinted gradient overlay for legibility */}
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-t from-forest-deep/90 via-forest-deep/30 to-forest-deep/40"
+        style={{ opacity: overlay }}
+      />
+
+      <div className="relative z-10 flex h-full items-end pb-16 sm:items-center sm:pb-0">
+        <div className="container">
+          <div className="max-w-2xl">
+            <motion.span
+              className="eyebrow text-sand/80"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+            >
+              The New Arrivals
+            </motion.span>
+
+            <motion.h1
+              className="mt-4 font-serif text-5xl font-semibold leading-[0.98] tracking-tight text-sand sm:text-6xl lg:text-7xl"
+              initial={{ opacity: 0, y: 28 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.32, ease: [0.22, 0.4, 0.25, 1] }}
+            >
+              {title}
+            </motion.h1>
+
+            <motion.p
+              className="mt-6 max-w-md text-base leading-relaxed text-sand/85 sm:text-lg"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
+            >
+              {subtitle}
+            </motion.p>
+
+            <motion.div
+              className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.7 }}
+            >
+              <Link
+                href={ctaHref}
+                className="group inline-flex items-center justify-center gap-2 rounded-sm bg-sand px-8 py-4 text-[13px] font-semibold uppercase tracking-[0.14em] text-forest-deep transition-all duration-300 hover:bg-white"
+              >
+                Shop New Arrivals
+                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </Link>
+              <Link
+                href="/categories"
+                className="inline-flex items-center justify-center gap-2 rounded-sm border border-sand/40 px-8 py-4 text-[13px] font-semibold uppercase tracking-[0.14em] text-sand transition-all duration-300 hover:border-sand hover:bg-sand/10"
+              >
+                Explore Collections
+              </Link>
+            </motion.div>
+          </div>
         </div>
       </div>
 
-      {/* Radial fade */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,hsl(0_0%_99%)_75%)]" />
-
-      <motion.div className="relative z-10 container" style={{ y, opacity }}>
-        <div className="mx-auto max-w-4xl text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
-            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="mb-6"
-          >
-            <span className="inline-flex items-center gap-2 rounded-full border border-violet/15 bg-violet/5 px-4 py-1.5 text-sm text-violet">
-              <Sparkles className="h-3.5 w-3.5" />
-              New Collection Available
-            </span>
-          </motion.div>
-
-          <motion.h1
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] text-foreground"
-            initial={{ opacity: 0, y: 50, filter: 'blur(15px)' }}
-            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-            transition={{ duration: 0.9, delay: 0.5, ease: [0.25, 0.4, 0.25, 1] }}
-          >
-            {activeBanner ? (
-              <>
-                <span className="block">{activeBanner.title}</span>
-                {activeBanner.subtitle && (
-                  <span className="block mt-2 text-gradient">{activeBanner.subtitle}</span>
-                )}
-              </>
-            ) : (
-              <>
-                <span className="block">Premium Products,</span>
-                <span className="block mt-2 text-gradient">Delivered Fast.</span>
-              </>
-            )}
-          </motion.h1>
-
-          <motion.p
-            className="mx-auto mt-8 max-w-xl text-lg text-muted-foreground leading-relaxed"
-            initial={{ opacity: 0, y: 30, filter: 'blur(8px)' }}
-            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-            transition={{ duration: 0.8, delay: 0.8 }}
-          >
-            Discover our curated collection of quality products. From everyday
-            essentials to premium finds — shop with confidence.
-          </motion.p>
-
-          <motion.div
-            className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 1.1 }}
-          >
-            <Link
-              href="/search"
-              className="cursor-pointer group relative overflow-hidden rounded-2xl bg-gradient-to-r from-violet to-violet-dark px-8 py-4 text-sm font-medium text-white transition-all duration-300 hover:shadow-xl hover:shadow-violet/20"
-            >
-              <span className="relative z-10 flex items-center gap-2">
-                Shop Now
-                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
-              </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-violet-light to-cyan opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-            </Link>
-            <Link
-              href="/categories"
-              className="cursor-pointer flex items-center gap-2 rounded-2xl border border-black/[0.08] bg-white px-8 py-4 text-sm font-medium text-foreground transition-all duration-300 hover:border-black/15 hover:shadow-sm"
-            >
-              Browse Categories
-            </Link>
-          </motion.div>
-        </div>
-      </motion.div>
-
-      {/* Scroll indicator */}
+      {/* Scroll cue */}
       <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2"
+        className="absolute bottom-7 left-1/2 hidden -translate-x-1/2 sm:flex"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 2, duration: 1 }}
+        transition={{ delay: 1.4, duration: 1 }}
       >
         <motion.div
           className="flex flex-col items-center gap-2"
-          animate={{ y: [0, 6, 0] }}
+          animate={{ y: [0, 7, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
         >
-          <span className="text-[10px] text-muted-foreground uppercase tracking-widest">Scroll</span>
-          <div className="h-6 w-[1px] bg-gradient-to-b from-muted-foreground/40 to-transparent" />
+          <span className="text-[10px] uppercase tracking-[0.3em] text-sand/70">Scroll</span>
+          <div className="h-7 w-px bg-gradient-to-b from-sand/60 to-transparent" />
         </motion.div>
       </motion.div>
     </section>
   );
 }
 
-function ValueProps() {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: '-80px' });
-
+/* ------------------------------------------------------------------ */
+/* Values strip                                                        */
+/* ------------------------------------------------------------------ */
+function ValueStrip() {
   const props = [
-    { icon: Truck, label: 'Free Shipping', desc: 'On orders above ₹499' },
-    { icon: Shield, label: 'Secure Payments', desc: 'Razorpay powered' },
-    { icon: Undo2, label: 'Easy Returns', desc: '7-day return policy' },
-    { icon: Star, label: 'Top Quality', desc: 'Curated products only' },
+    { icon: Leaf, label: 'Made Responsibly', desc: 'Sustainable materials, fair factories' },
+    { icon: Truck, label: 'Free Shipping', desc: 'On every order over ₹2,000' },
+    { icon: RotateCcw, label: '30-Day Returns', desc: 'Easy, no-fuss exchanges' },
+    { icon: ShieldCheck, label: 'Secure Checkout', desc: 'Razorpay-protected payments' },
   ];
 
   return (
-    <div ref={ref} className="container py-16">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {props.map((item, i) => (
-          <motion.div
-            key={item.label}
-            className="rounded-2xl border border-black/[0.05] bg-white p-5 flex items-start gap-3 cursor-default shadow-sm"
-            initial={{ opacity: 0, y: 30 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.5, delay: i * 0.1 }}
-          >
-            <div className="flex-shrink-0 h-9 w-9 rounded-lg bg-gradient-to-br from-violet/10 to-cyan/10 flex items-center justify-center">
-              <item.icon className="h-4 w-4 text-violet" />
+    <div className="border-y border-border bg-sand-deep/40">
+      <div className="container">
+        <div className="grid grid-cols-2 divide-x divide-border/70 lg:grid-cols-4">
+          {props.map((item, i) => (
+            <div
+              key={item.label}
+              className={`flex items-center gap-3 px-4 py-6 ${i >= 2 ? 'border-t border-border/70 lg:border-t-0' : ''}`}
+            >
+              <item.icon className="h-5 w-5 shrink-0 text-clay" strokeWidth={1.6} />
+              <div>
+                <p className="text-[13px] font-semibold text-foreground">{item.label}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{item.desc}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-foreground">{item.label}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{item.desc}</p>
-            </div>
-          </motion.div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* Editorial split — brand story                                       */
+/* ------------------------------------------------------------------ */
+function StorySection() {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: '-100px' });
+
+  return (
+    <section ref={ref} className="container py-20 sm:py-28">
+      <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+        <motion.div
+          className="relative aspect-[4/3] overflow-hidden rounded-sm bg-secondary"
+          initial={{ opacity: 0, scale: 0.97 }}
+          animate={isInView ? { opacity: 1, scale: 1 } : {}}
+          transition={{ duration: 0.9, ease: [0.22, 0.4, 0.25, 1] }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1400&q=80"
+            alt="Considered design, built to last"
+            className="h-full w-full object-cover"
+          />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8, delay: 0.15 }}
+        >
+          <span className="eyebrow text-clay">Our Promise</span>
+          <h2 className="mt-4 font-serif text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-4xl lg:text-[2.75rem]">
+            A brand with stories to tell, built for the long way round.
+          </h2>
+          <p className="mt-6 max-w-lg leading-relaxed text-muted-foreground">
+            Every piece is designed to be lived in — versatile, durable, and made
+            with materials that tread lightly. We believe good things should last,
+            and the best journeys rarely follow a straight line.
+          </p>
+          <Link
+            href="/about"
+            className="link-underline mt-8 inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.12em] text-forest"
+          >
+            Read our story
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Categories — photographic grid                                      */
+/* ------------------------------------------------------------------ */
 function CategoriesSection({ categories, loading }: { categories: Category[]; loading: boolean }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-80px' });
 
   return (
-    <section ref={ref} className="container py-16">
+    <section ref={ref} className="container py-16 sm:py-20">
       <motion.div
-        className="flex items-end justify-between mb-10"
-        initial={{ opacity: 0, y: 30 }}
+        className="mb-10 flex items-end justify-between"
+        initial={{ opacity: 0, y: 24 }}
         animate={isInView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.6 }}
       >
         <div>
-          <span className="text-xs font-medium uppercase tracking-widest text-violet mb-2 block">
-            Collections
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+          <span className="eyebrow text-clay">Collections</span>
+          <h2 className="mt-3 font-serif text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
             Shop by Category
           </h2>
         </div>
         <Link
           href="/categories"
-          className="cursor-pointer hidden sm:flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          className="link-underline hidden items-center gap-1.5 text-sm font-semibold uppercase tracking-[0.1em] text-foreground/70 transition-colors hover:text-foreground sm:flex"
         >
           View All <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </motion.div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
         {loading
           ? Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="aspect-square rounded-2xl bg-secondary animate-pulse" />
+              <div key={i} className="aspect-[3/4] animate-pulse rounded-sm bg-secondary" />
             ))
           : categories.map((cat, i) => (
               <motion.div
                 key={cat._id}
-                initial={{ opacity: 0, y: 40 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.6, delay: i * 0.08 }}
+                transition={{ duration: 0.6, delay: i * 0.07 }}
               >
                 <Link
                   href={`/categories/${cat.slug}`}
-                  className="cursor-pointer group relative flex aspect-square items-center justify-center rounded-2xl border border-black/[0.05] bg-white p-6 overflow-hidden transition-all duration-500 hover:border-violet/20 hover:shadow-lg hover:shadow-violet/5"
+                  className="group relative block aspect-[3/4] overflow-hidden rounded-sm bg-forest-deep"
                 >
-                  {/* Hover glow */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-violet/[0.03] via-transparent to-cyan/[0.03] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-
-                  {cat.image && (
-                    <div className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity duration-500">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={cat.image}
-                        alt=""
-                        className="h-full w-full object-cover scale-110 group-hover:scale-100 transition-transform duration-700"
-                      />
-                    </div>
+                  {cat.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={cat.image}
+                      alt={cat.name}
+                      className="h-full w-full object-cover opacity-90 transition-transform duration-700 ease-out group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="h-full w-full bg-gradient-to-br from-forest to-forest-deep" />
                   )}
-
-                  <div className="relative text-center z-10">
-                    <h3 className="text-base sm:text-lg font-semibold text-foreground transition-colors duration-200 group-hover:text-violet">
+                  <div className="absolute inset-0 bg-gradient-to-t from-forest-deep/80 via-transparent to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
+                    <h3 className="font-serif text-lg font-semibold text-sand sm:text-xl">
                       {cat.name}
                     </h3>
-                    <p className="mt-1.5 text-xs text-muted-foreground">
-                      {cat.productCount} products
+                    <p className="mt-1 inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.14em] text-sand/80">
+                      Shop now <ArrowRight className="h-3 w-3" />
                     </p>
                   </div>
                 </Link>
@@ -270,171 +298,193 @@ function CategoriesSection({ categories, loading }: { categories: Category[]; lo
   );
 }
 
-function ProductCard({ product, index }: { product: Product; index: number }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: '-50px' });
-
-  const onSale = product.salePrice && product.salePrice < product.basePrice;
-  const displayPrice = onSale ? product.salePrice! : product.basePrice;
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 40 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, delay: index * 0.06 }}
-    >
-      <Link
-        href={`/products/${product.slug}`}
-        className="cursor-pointer group block space-y-3"
-      >
-        <div className="relative aspect-square overflow-hidden rounded-2xl border border-black/[0.05] bg-secondary/50 transition-all duration-500 group-hover:border-violet/15 group-hover:shadow-lg group-hover:shadow-violet/5">
-          {product.images[0] && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={product.images[0].url}
-              alt={product.images[0].alt || product.name}
-              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-            />
-          )}
-
-          {/* Sale badge */}
-          {onSale && (
-            <div className="absolute top-3 left-3 rounded-full bg-gradient-to-r from-pink to-violet px-2.5 py-0.5 text-[10px] font-bold text-white">
-              SALE
-            </div>
-          )}
-
-          {/* Quick action hint */}
-          <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
-            <div className="rounded-xl bg-white/90 backdrop-blur-sm border border-black/[0.05] px-4 py-2 text-center text-xs font-medium text-foreground shadow-sm">
-              View Product
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-1.5 px-1">
-          <h3 className="text-sm font-medium line-clamp-2 text-foreground transition-colors duration-200 group-hover:text-violet">
-            {product.name}
-          </h3>
-          {product.brandId && (
-            <p className="text-xs text-muted-foreground">{product.brandId.name}</p>
-          )}
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-foreground">
-              ₹{displayPrice.toLocaleString('en-IN')}
-            </span>
-            {onSale && (
-              <span className="text-xs text-muted-foreground line-through">
-                ₹{product.basePrice.toLocaleString('en-IN')}
-              </span>
-            )}
-            {product.ratings.count > 0 && (
-              <span className="flex items-center gap-0.5 text-xs text-muted-foreground ml-auto">
-                <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                {product.ratings.average}
-              </span>
-            )}
-          </div>
-        </div>
-      </Link>
-    </motion.div>
-  );
-}
-
-function FeaturedProducts({ products, loading }: { products: Product[]; loading: boolean }) {
+/* ------------------------------------------------------------------ */
+/* Editorial 2-up banners                                              */
+/* ------------------------------------------------------------------ */
+function EditorialBanners() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-80px' });
 
-  return (
-    <section ref={ref} className="container py-16">
-      <motion.div
-        className="flex items-end justify-between mb-10"
-        initial={{ opacity: 0, y: 30 }}
-        animate={isInView ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.6 }}
-      >
-        <div>
-          <span className="text-xs font-medium uppercase tracking-widest text-cyan mb-2 block">
-            Curated
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
-            Featured Products
-          </h2>
-        </div>
-        <Link
-          href="/search?featured=true"
-          className="cursor-pointer hidden sm:flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-        >
-          View All <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
-      </motion.div>
+  const tiles = [
+    {
+      eyebrow: 'The Edit',
+      title: 'The Summer Edit',
+      cta: 'Shop the Edit',
+      href: '/categories/womens',
+      image: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=1200&q=80',
+    },
+    {
+      eyebrow: "Women's Pants",
+      title: 'Work-to-Weekend Wide Legs',
+      cta: "Shop Women's Pants",
+      href: '/categories/womens-bottoms',
+      image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1200&q=80',
+    },
+  ];
 
-      <div className="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-3 lg:grid-cols-4">
-        {loading
-          ? Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="space-y-3">
-                <div className="aspect-square rounded-2xl bg-secondary animate-pulse" />
-                <div className="h-4 w-3/4 rounded bg-secondary animate-pulse" />
-                <div className="h-4 w-1/2 rounded bg-secondary animate-pulse" />
+  return (
+    <section ref={ref} className="container py-6 sm:py-10">
+      <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
+        {tiles.map((t, i) => (
+          <motion.div
+            key={t.title}
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.7, delay: i * 0.1 }}
+          >
+            <Link
+              href={t.href}
+              className="group relative block aspect-[4/5] overflow-hidden rounded-sm bg-forest-deep sm:aspect-[16/13]"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={t.image}
+                alt={t.title}
+                className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-forest-deep/75 via-transparent to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
+                <span className="eyebrow text-sand/80">{t.eyebrow}</span>
+                <h3 className="mt-2 max-w-xs font-serif text-2xl font-semibold leading-tight text-sand sm:text-3xl">
+                  {t.title}
+                </h3>
+                <span className="mt-4 inline-block rounded-sm border border-sand/50 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-sand transition-colors group-hover:bg-sand group-hover:text-forest-deep">
+                  {t.cta}
+                </span>
               </div>
-            ))
-          : products.map((product, i) => (
-              <ProductCard key={product._id} product={product} index={i} />
-            ))}
+            </Link>
+          </motion.div>
+        ))}
       </div>
     </section>
   );
 }
 
-function CTASection() {
+/* ------------------------------------------------------------------ */
+/* Featured products                                                   */
+/* ------------------------------------------------------------------ */
+function FeaturedProducts({ products, loading }: { products: Product[]; loading: boolean }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-80px' });
 
   return (
-    <section ref={ref} className="container py-20">
+    <section ref={ref} className="border-t border-border bg-sand-deep/30">
+      <div className="container py-16 sm:py-20">
+        <motion.div
+          className="mb-10 flex items-end justify-between"
+          initial={{ opacity: 0, y: 24 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+        >
+          <div>
+            <span className="eyebrow text-clay">Bestsellers</span>
+            <h2 className="mt-3 font-serif text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              Loved by Wanderers
+            </h2>
+          </div>
+          <Link
+            href="/search?featured=true"
+            className="link-underline hidden items-center gap-1.5 text-sm font-semibold uppercase tracking-[0.1em] text-foreground/70 transition-colors hover:text-foreground sm:flex"
+          >
+            View All <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </motion.div>
+
+        <div className="grid grid-cols-2 gap-x-4 gap-y-9 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4">
+          {loading
+            ? Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="space-y-3">
+                  <div className="aspect-[4/5] animate-pulse rounded-sm bg-secondary" />
+                  <div className="h-3 w-1/2 animate-pulse rounded bg-secondary" />
+                  <div className="h-4 w-3/4 animate-pulse rounded bg-secondary" />
+                </div>
+              ))
+            : products.map((product, i) => (
+                <ProductCard key={product._id} product={product} index={i} />
+              ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Newsletter CTA                                                      */
+/* ------------------------------------------------------------------ */
+function NewsletterSection() {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: '-80px' });
+  const [email, setEmail] = useState('');
+  const [done, setDone] = useState(false);
+
+  return (
+    <section ref={ref} className="relative overflow-hidden bg-forest-deep">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=2000&q=80"
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover opacity-25"
+      />
+      <div className="absolute inset-0 bg-forest-deep/70" />
       <motion.div
-        className="relative overflow-hidden rounded-3xl border border-violet/10 bg-gradient-to-br from-violet/[0.04] via-white to-cyan/[0.03] p-12 sm:p-16 text-center"
-        initial={{ opacity: 0, y: 40 }}
+        className="container relative z-10 py-20 text-center sm:py-28"
+        initial={{ opacity: 0, y: 30 }}
         animate={isInView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.8 }}
       >
-        {/* Aurora inside */}
-        <div className="absolute top-0 right-0 w-[300px] h-[300px] rounded-full bg-violet/[0.04] blur-[100px] animate-aurora" />
-        <div className="absolute bottom-0 left-0 w-[250px] h-[250px] rounded-full bg-cyan/[0.04] blur-[100px] animate-aurora" style={{ animationDelay: '-7s' }} />
+        <span className="eyebrow text-sand/70">Join the Detour</span>
+        <h2 className="mx-auto mt-4 max-w-2xl font-serif text-4xl font-semibold leading-tight tracking-tight text-sand sm:text-5xl">
+          Stories, early access &amp; a little inspiration.
+        </h2>
+        <p className="mx-auto mt-5 max-w-md leading-relaxed text-sand/80">
+          Sign up for new arrivals, members-only offers, and ₹500 off your first order.
+        </p>
 
-        <div className="relative z-10">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
-            Join the <span className="text-gradient">Speffo</span> experience
-          </h2>
-          <p className="mt-4 text-muted-foreground max-w-md mx-auto">
-            Sign up today and get early access to new arrivals, exclusive deals, and free shipping on your first order.
-          </p>
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              href="/register"
-              className="cursor-pointer rounded-2xl bg-gradient-to-r from-violet to-violet-dark px-8 py-3.5 text-sm font-medium text-white transition-all duration-300 hover:shadow-lg hover:shadow-violet/20"
+        {done ? (
+          <p className="mt-9 text-sand">Thanks — keep an eye on your inbox. ✦</p>
+        ) : (
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              if (!email.trim()) return;
+              try {
+                await api.post('/newsletter/subscribe', { email: email.trim() });
+                setDone(true);
+              } catch {
+                setDone(true);
+              }
+            }}
+            className="mx-auto mt-9 flex max-w-md flex-col gap-3 sm:flex-row"
+          >
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Your email address"
+              className="flex-1 rounded-sm border border-sand/30 bg-sand/10 px-5 py-3.5 text-sm text-sand placeholder:text-sand/50 outline-none transition-colors focus:border-sand"
+            />
+            <button
+              type="submit"
+              className="rounded-sm bg-sand px-7 py-3.5 text-[13px] font-semibold uppercase tracking-[0.14em] text-forest-deep transition-colors hover:bg-white"
             >
-              Create Account
-            </Link>
-            <Link
-              href="/search"
-              className="cursor-pointer rounded-2xl border border-black/[0.08] bg-white px-8 py-3.5 text-sm font-medium text-foreground transition-all duration-300 hover:border-black/15 hover:shadow-sm"
-            >
-              Start Shopping
-            </Link>
-          </div>
-        </div>
+              Sign Up
+            </button>
+          </form>
+        )}
       </motion.div>
     </section>
   );
 }
+
+/* ------------------------------------------------------------------ */
 
 export default function HomePage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -442,13 +492,14 @@ export default function HomePage() {
         const [catData, prodData, bannerData] = await Promise.all([
           api.get<{ categories: Category[] }>('/categories?level=0&isActive=true'),
           api.get<{ items: Product[] }>('/products?limit=8&isFeatured=true&sortBy=createdAt&sortOrder=desc'),
-          api.get<{ banners: Banner[] }>('/banners?isActive=true&placement=home_hero').catch(() => ({ banners: [] })),
+          api.get<{ banners: Banner[] }>('/banners?position=hero').catch(() => ({ banners: [] })),
         ]);
         setCategories(catData.categories || []);
         setProducts(prodData.items || []);
         setBanners(bannerData.banners || []);
       } catch (err) {
         console.error('Failed to load homepage data:', err);
+        setError(true);
       } finally {
         setLoading(false);
       }
@@ -459,11 +510,27 @@ export default function HomePage() {
   return (
     <div>
       <div className="noise-overlay" />
+      {error && !loading && (
+        <div className="container py-20 text-center">
+          <div className="mx-auto max-w-md">
+            <p className="font-serif text-2xl font-semibold text-foreground">Something went wrong</p>
+            <p className="mt-2 text-muted-foreground">We couldn&apos;t load the page content. Please try again.</p>
+            <button
+              onClick={() => { setError(false); setLoading(true); window.location.reload(); }}
+              className="mt-6 rounded-sm bg-forest px-6 py-3 text-sm font-medium text-sand transition-colors hover:bg-forest-deep"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      )}
       <HeroSection banners={banners} />
-      <ValueProps />
-      <CategoriesSection categories={categories} loading={loading} />
+      <ValueStrip />
       <FeaturedProducts products={products} loading={loading} />
-      <CTASection />
+      <EditorialBanners />
+      <CategoriesSection categories={categories} loading={loading} />
+      <StorySection />
+      <NewsletterSection />
     </div>
   );
 }

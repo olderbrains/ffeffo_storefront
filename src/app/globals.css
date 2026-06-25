@@ -2,31 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Speffo storefront — "Designed for Detours" editorial theme.
+ * Earthy, sustainable palette: warm sand backgrounds, off-black ink,
+ * deep forest-green as the brand colour, terracotta clay as the accent.
+ * The historical `--violet` / `--cyan` / `--pink` tokens are intentionally
+ * remapped to earth tones so legacy utility classes (text-violet, from-cyan,
+ * .text-gradient, …) render on-brand without touching every call site.
+ */
 @layer base {
   :root {
-    --background: 0 0% 99%;
-    --foreground: 240 10% 6%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 6%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 6%;
-    --primary: 263 70% 50%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 240 10% 6%;
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 46%;
-    --accent: 240 5% 96%;
-    --accent-foreground: 240 10% 6%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 240 6% 90%;
-    --input: 240 6% 90%;
-    --ring: 263 70% 50%;
-    --radius: 0.75rem;
-    --violet: 263 70% 50%;
-    --cyan: 187 85% 43%;
-    --pink: 330 81% 55%;
+    --background: 38 36% 94%;        /* warm cream / sand */
+    --foreground: 30 13% 13%;        /* warm near-black ink */
+    --card: 40 40% 98%;
+    --card-foreground: 30 13% 13%;
+    --popover: 40 40% 98%;
+    --popover-foreground: 30 13% 13%;
+    --primary: 136 18% 26%;          /* deep forest green */
+    --primary-foreground: 40 40% 97%;
+    --secondary: 40 28% 89%;         /* soft sand */
+    --secondary-foreground: 30 13% 13%;
+    --muted: 40 28% 89%;
+    --muted-foreground: 34 9% 40%;   /* warm stone grey */
+    --accent: 16 44% 49%;            /* terracotta clay */
+    --accent-foreground: 40 40% 97%;
+    --destructive: 5 58% 44%;
+    --destructive-foreground: 40 40% 97%;
+    --border: 38 22% 83%;
+    --input: 38 22% 83%;
+    --ring: 136 18% 26%;
+    --radius: 0.375rem;              /* editorial: subtle, near-square corners */
+
+    /* Brand earth tones (legacy keys, remapped) */
+    --violet: 136 18% 26%;           /* forest green   #34452F-ish */
+    --cyan: 16 44% 49%;              /* terracotta clay */
+    --pink: 8 36% 48%;               /* dusty berry    */
+
+    /* Named earth palette for new editorial components */
+    --forest: 136 18% 26%;
+    --forest-deep: 140 20% 18%;
+    --clay: 16 44% 49%;
+    --sand: 38 36% 94%;
+    --sand-deep: 36 26% 86%;
+    --ink: 30 13% 13%;
   }
 }
 
@@ -39,63 +57,102 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+  /* Editorial display headings lean on the serif face */
+  h1, h2, h3 {
+    font-feature-settings: 'liga' 1, 'calt' 1;
+  }
 }
 
 ::selection {
-  background: rgba(139, 92, 246, 0.15);
-  color: #1a1a2e;
+  background: hsl(136 18% 26% / 0.16);
+  color: hsl(30 13% 13%);
 }
 
 ::-webkit-scrollbar {
-  width: 5px;
+  width: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: hsl(0 0% 99%);
+  background: hsl(38 36% 94%);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.2);
-  border-radius: 3px;
+  background: hsl(136 18% 26% / 0.3);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.35);
+  background: hsl(136 18% 26% / 0.5);
 }
 
 @layer utilities {
+  .font-serif {
+    font-family: var(--font-fraunces), Georgia, 'Times New Roman', serif;
+  }
+
   .glass {
-    @apply bg-white/80 backdrop-blur-xl border border-black/[0.04] shadow-sm;
+    @apply border border-black/[0.05] shadow-sm;
+    background-color: hsl(40 40% 98% / 0.85);
+    backdrop-filter: blur(14px);
   }
 
   .glass-card {
-    @apply bg-white/70 backdrop-blur-md border border-black/[0.06] rounded-2xl shadow-sm;
+    @apply border border-black/[0.06] rounded-md shadow-sm;
+    background-color: hsl(40 40% 98% / 0.8);
+    backdrop-filter: blur(10px);
   }
 
+  /* Editorial gradient ink — forest → clay */
   .text-gradient {
-    background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 40%, #0891b2 100%);
+    background: linear-gradient(120deg, hsl(140 20% 18%) 0%, hsl(136 18% 26%) 45%, hsl(16 44% 49%) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .text-gradient-violet {
-    background: linear-gradient(135deg, #7c3aed 0%, #db2777 100%);
+    background: linear-gradient(120deg, hsl(136 18% 26%) 0%, hsl(16 44% 49%) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .glow-violet {
-    box-shadow: 0 4px 30px rgba(139, 92, 246, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 8px 40px hsl(136 18% 26% / 0.12), 0 1px 3px rgba(0, 0, 0, 0.05);
   }
 
   .glow-cyan {
-    box-shadow: 0 4px 30px rgba(6, 182, 212, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 8px 40px hsl(16 44% 49% / 0.12), 0 1px 3px rgba(0, 0, 0, 0.05);
   }
 
   .surface-elevated {
-    @apply bg-white border border-black/[0.05] shadow-sm;
+    @apply border border-black/[0.05] shadow-sm;
+    background-color: hsl(40 40% 98%);
+  }
+
+  /* Hairline label used across editorial sections */
+  .eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-[0.22em];
+  }
+
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Animated underline reveal for editorial links */
+  .link-underline {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size 0.4s cubic-bezier(0.25, 0.4, 0.25, 1);
+  }
+  .link-underline:hover {
+    background-size: 100% 1px;
   }
 }
 
@@ -121,17 +178,23 @@
   100% { transform: translateX(100%); }
 }
 
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
 .animate-aurora { animation: aurora 15s ease-in-out infinite; }
 .animate-float { animation: float 6s ease-in-out infinite; }
 .animate-pulse-glow { animation: pulse-glow 4s ease-in-out infinite; }
 .animate-shimmer { animation: shimmer 2s ease-in-out infinite; }
+.animate-marquee { animation: marquee 28s linear infinite; }
 
 .noise-overlay {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 9999;
-  opacity: 0.018;
+  opacity: 0.028;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
 }
 
@@ -139,7 +202,8 @@
   .animate-aurora,
   .animate-float,
   .animate-pulse-glow,
-  .animate-shimmer {
+  .animate-shimmer,
+  .animate-marquee {
     animation: none;
   }
 }
