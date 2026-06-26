@@ -1,14 +1,14 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Check, CreditCard, Lock, MapPin, Plus, ShieldCheck, Truck } from 'lucide-react';
+import { Check, CreditCard, Lock, MapPin, Plus, ShieldCheck, Tag, Truck, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
-import { api } from '@/lib/api/client';
+import { api, ApiError } from '@/lib/api/client';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { selectCartSubtotal, useCartStore } from '@/lib/stores/cart-store';
 
@@ -113,6 +113,11 @@ export default function CheckoutPage() {
   const [showNewForm, setShowNewForm] = useState(false);
   const [savingAddress, setSavingAddress] = useState(false);
 
+  const [couponCode, setCouponCode] = useState('');
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
@@ -160,8 +165,9 @@ export default function CheckoutPage() {
   }
 
   const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_CHARGE;
-  const tax = Math.round(subtotal * TAX_RATE);
-  const total = subtotal + shipping + tax;
+  const taxableAmount = subtotal - couponDiscount;
+  const tax = Math.round(taxableAmount * TAX_RATE);
+  const total = taxableAmount + shipping + tax;
 
   function populateForm(address: SavedAddress) {
     setForm({
@@ -200,6 +206,34 @@ export default function CheckoutPage() {
     if (!form.postalCode.trim() || form.postalCode.trim().length < 6) { toast.error('Please enter a valid PIN code'); return false; }
     return true;
   };
+
+  async function applyCoupon() {
+    const code = couponCode.trim();
+    if (!code) { toast.error('Please enter a coupon code'); return; }
+    setValidatingCoupon(true);
+    try {
+      const result = await api.post<{ valid: boolean; discount: number }>('/coupons/validate', {
+        code,
+        orderAmount: subtotal,
+      });
+      setCouponDiscount(result.discount);
+      setAppliedCoupon(code.toUpperCase());
+      toast.success(`Coupon applied! You save ₹${result.discount.toLocaleString('en-IN')}`);
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : 'Invalid coupon code';
+      toast.error(msg);
+      setCouponDiscount(0);
+      setAppliedCoupon(null);
+    } finally {
+      setValidatingCoupon(false);
+    }
+  }
+
+  function removeCoupon() {
+    setCouponCode('');
+    setCouponDiscount(0);
+    setAppliedCoupon(null);
+  }
 
   async function saveNewAddress(): Promise<boolean> {
     if (!validate()) return false;
@@ -263,6 +297,7 @@ export default function CheckoutPage() {
           country: 'IN',
         },
         paymentMethod: 'razorpay',
+        ...(appliedCoupon && { couponCode: appliedCoupon }),
       });
 
       const orderId: string = order._id;
@@ -298,6 +333,7 @@ export default function CheckoutPage() {
         modal: {
           ondismiss: () => {
             toast.info('Payment cancelled. Your order is saved — you can retry from My Orders.');
+            clearCart();
             setPlacing(false);
             placingRef.current = false;
             router.push('/account/orders');
@@ -471,11 +507,59 @@ export default function CheckoutPage() {
             ))}
           </div>
 
-          <div className="mt-6 space-y-2 border-t border-border pt-4 text-sm">
+          {/* Coupon code */}
+          <div className="mt-5 border-t border-border pt-4">
+            {appliedCoupon ? (
+              <div className="flex items-center justify-between rounded-sm border border-forest/20 bg-forest/5 px-3 py-2">
+                <span className="flex items-center gap-2 text-sm font-medium text-forest">
+                  <Tag className="h-3.5 w-3.5" />
+                  {appliedCoupon}
+                  <span className="text-xs font-normal text-muted-foreground">
+                    (-₹{couponDiscount.toLocaleString('en-IN')})
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  onClick={removeCoupon}
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                  aria-label="Remove coupon"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Coupon code"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                  onKeyDown={(e) => { if (e.key === 'Enter') applyCoupon(); }}
+                  className="flex-1 rounded-sm border border-border bg-background px-3 py-2 text-sm uppercase outline-none transition-colors focus:border-forest placeholder:normal-case placeholder:text-muted-foreground/60"
+                />
+                <button
+                  type="button"
+                  onClick={applyCoupon}
+                  disabled={validatingCoupon}
+                  className="rounded-sm bg-forest px-4 py-2 text-xs font-semibold uppercase tracking-wider text-sand transition-colors hover:bg-forest-deep disabled:opacity-50"
+                >
+                  {validatingCoupon ? '...' : 'Apply'}
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-4 space-y-2 border-t border-border pt-4 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Subtotal</span>
               <span>₹{subtotal.toLocaleString('en-IN')}</span>
             </div>
+            {couponDiscount > 0 && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Coupon Discount</span>
+                <span className="font-medium text-forest">-₹{couponDiscount.toLocaleString('en-IN')}</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-muted-foreground">Shipping</span>
               <span className={shipping === 0 ? 'text-forest font-medium' : ''}>
