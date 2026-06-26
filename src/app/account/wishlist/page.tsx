@@ -58,7 +58,7 @@ export default function WishlistPage() {
           <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="space-y-3">
-                <div className="aspect-[4/5] animate-pulse rounded-sm bg-muted" />
+                <div className="aspect-[4/5] animate-pulse rounded-xl bg-muted" />
                 <div className="h-3 w-1/2 animate-pulse rounded bg-muted" />
                 <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
               </div>

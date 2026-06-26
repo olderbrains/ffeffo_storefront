@@ -86,7 +86,7 @@ function CategoryCard({ category, index }: { category: Category; index: number }
     >
       <Link
         href={`/categories/${category.slug}`}
-        className="group relative block overflow-hidden rounded-sm bg-forest-deep"
+        className="group relative block overflow-hidden rounded-xl bg-forest-deep"
       >
         <div className={`relative ${isLarge ? 'aspect-[16/9]' : 'aspect-[3/4]'}`}>
           {category.image ? (
@@ -173,7 +173,7 @@ function SubcategoryRow({ parent }: { parent: Category }) {
           >
             <Link
               href={`/categories/${child.slug}`}
-              className="group relative block w-44 overflow-hidden rounded-sm sm:w-52"
+              className="group relative block w-44 overflow-hidden rounded-xl sm:w-52"
             >
               <div className="aspect-[4/5] bg-secondary">
                 {child.image ? (
@@ -242,7 +242,7 @@ export default function CategoriesPage() {
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className={`animate-pulse rounded-sm bg-secondary ${i < 2 ? 'aspect-[16/9] md:col-span-2' : 'aspect-[3/4]'}`}
+                className={`animate-pulse rounded-xl bg-secondary ${i < 2 ? 'aspect-[16/9] md:col-span-2' : 'aspect-[3/4]'}`}
               />
             ))}
           </div>

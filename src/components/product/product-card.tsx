@@ -62,7 +62,7 @@ export function ProductCard({
         onMouseLeave={() => setHover(false)}
       >
         <Link href={`/products/${product.slug}`} className="block">
-          <div className="relative aspect-[4/5] overflow-hidden rounded-sm bg-secondary">
+          <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-secondary">
             {primary && (
               <Image
                 src={primary}

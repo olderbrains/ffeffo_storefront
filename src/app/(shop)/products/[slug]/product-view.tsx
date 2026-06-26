@@ -192,7 +192,7 @@ export function ProductView({ slug }: { slug: string }) {
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
           <div className="grid grid-cols-2 gap-2">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="aspect-[4/5] animate-pulse rounded-sm bg-secondary" />
+              <div key={i} className="aspect-[4/5] animate-pulse rounded-xl bg-secondary" />
             ))}
           </div>
           <div className="space-y-6">
@@ -287,7 +287,7 @@ export function ProductView({ slug }: { slug: string }) {
           {gallery.map((img, i) => (
             <div
               key={i}
-              className={`group/img relative cursor-pointer overflow-hidden rounded-sm bg-secondary ${
+              className={`group/img relative cursor-pointer overflow-hidden rounded-xl bg-secondary ${
                 gallery.length === 1 ? 'sm:col-span-2 aspect-[4/3]' : 'aspect-[4/5]'
               }`}
               onClick={() => img.url && setLightboxIndex(i)}

@@ -84,7 +84,7 @@ function BrandCard({ brand, index }: { brand: Brand; index: number }) {
     >
       <Link
         href={`/brands/${brand.slug}`}
-        className="group relative block overflow-hidden rounded-sm"
+        className="group relative block overflow-hidden rounded-xl"
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
@@ -207,7 +207,7 @@ export default function BrandsPage() {
         {loading ? (
           <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="aspect-[4/5] animate-pulse rounded-sm bg-secondary" />
+              <div key={i} className="aspect-[4/5] animate-pulse rounded-xl bg-secondary" />
             ))}
           </div>
         ) : error ? (

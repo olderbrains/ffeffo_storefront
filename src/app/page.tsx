@@ -186,7 +186,7 @@ function StorySection() {
     <section ref={ref} className="container py-20 sm:py-28">
       <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
         <motion.div
-          className="relative aspect-[4/3] overflow-hidden rounded-sm bg-secondary"
+          className="relative aspect-[4/3] overflow-hidden rounded-xl bg-secondary"
           initial={{ opacity: 0, scale: 0.97 }}
           animate={isInView ? { opacity: 1, scale: 1 } : {}}
           transition={{ duration: 0.9, ease: [0.22, 0.4, 0.25, 1] }}
@@ -258,7 +258,7 @@ function CategoriesSection({ categories, loading }: { categories: Category[]; lo
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
         {loading
           ? Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="aspect-[3/4] animate-pulse rounded-sm bg-secondary" />
+              <div key={i} className="aspect-[3/4] animate-pulse rounded-xl bg-secondary" />
             ))
           : categories.map((cat, i) => (
               <motion.div
@@ -269,7 +269,7 @@ function CategoriesSection({ categories, loading }: { categories: Category[]; lo
               >
                 <Link
                   href={`/categories/${cat.slug}`}
-                  className="group relative block aspect-[3/4] overflow-hidden rounded-sm bg-forest-deep"
+                  className="group relative block aspect-[3/4] overflow-hidden rounded-xl bg-forest-deep"
                 >
                   {cat.image ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -334,7 +334,7 @@ function EditorialBanners() {
           >
             <Link
               href={t.href}
-              className="group relative block aspect-[4/5] overflow-hidden rounded-sm bg-forest-deep sm:aspect-[16/13]"
+              className="group relative block aspect-[4/5] overflow-hidden rounded-xl bg-forest-deep sm:aspect-[16/13]"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -394,7 +394,7 @@ function FeaturedProducts({ products, loading }: { products: Product[]; loading:
           {loading
             ? Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="space-y-3">
-                  <div className="aspect-[4/5] animate-pulse rounded-sm bg-secondary" />
+                  <div className="aspect-[4/5] animate-pulse rounded-xl bg-secondary" />
                   <div className="h-3 w-1/2 animate-pulse rounded bg-secondary" />
                   <div className="h-4 w-3/4 animate-pulse rounded bg-secondary" />
                 </div>

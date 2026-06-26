@@ -135,7 +135,7 @@ export default function SearchPage() {
           <div className="grid grid-cols-2 gap-x-4 gap-y-9 sm:grid-cols-3 lg:grid-cols-4">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="space-y-3">
-                <div className="aspect-[4/5] animate-pulse rounded-sm bg-secondary" />
+                <div className="aspect-[4/5] animate-pulse rounded-xl bg-secondary" />
                 <div className="h-3 w-1/2 animate-pulse rounded bg-secondary" />
                 <div className="h-4 w-3/4 animate-pulse rounded bg-secondary" />
               </div>
