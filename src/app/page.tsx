@@ -492,11 +492,11 @@ export default function HomePage() {
         const [catData, prodData, bannerData] = await Promise.all([
           api.get<{ categories: Category[] }>('/categories?level=0&isActive=true'),
           api.get<{ items: Product[] }>('/products?limit=8&isFeatured=true&sortBy=createdAt&sortOrder=desc'),
-          api.get<{ banners: Banner[] }>('/banners?position=hero').catch(() => ({ banners: [] })),
+          api.get<{ data: Banner[]; pagination: unknown }>('/banners?position=hero').catch(() => ({ data: [], pagination: null })),
         ]);
         setCategories(catData.categories || []);
         setProducts(prodData.items || []);
-        setBanners(bannerData.banners || []);
+        setBanners(bannerData.data || []);
       } catch (err) {
         console.error('Failed to load homepage data:', err);
         setError(true);
