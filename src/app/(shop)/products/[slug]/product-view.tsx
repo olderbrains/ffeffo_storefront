@@ -452,11 +452,11 @@ export function ProductView({ slug }: { slug: string }) {
           <ul className="mt-7 space-y-3 border-y border-border py-6 text-sm text-muted-foreground">
             <li className="flex items-center gap-3">
               <Truck className="h-4 w-4 shrink-0 text-forest" strokeWidth={1.6} />
-              Free shipping on orders over ₹2,000
+              Free shipping on orders over ₹1,000
             </li>
             <li className="flex items-center gap-3">
               <RotateCcw className="h-4 w-4 shrink-0 text-forest" strokeWidth={1.6} />
-              30-day easy returns &amp; exchanges
+              7-day easy returns &amp; exchanges
             </li>
             <li className="flex items-center gap-3">
               <Leaf className="h-4 w-4 shrink-0 text-forest" strokeWidth={1.6} />
@@ -488,7 +488,7 @@ export function ProductView({ slug }: { slug: string }) {
             )}
             <Accordion title="Shipping & Returns">
               <p>
-                Orders ship within 1–2 business days. Enjoy free shipping over ₹2,000 and 30-day
+                Orders ship within 1–2 business days. Enjoy free shipping over ₹1,000 and 7-day
                 returns on unworn items with tags attached.
               </p>
             </Accordion>

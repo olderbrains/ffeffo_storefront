@@ -148,8 +148,8 @@ function HeroSection({ banners }: { banners: Banner[] }) {
 function ValueStrip() {
   const props = [
     { icon: Leaf, label: 'Made Responsibly', desc: 'Sustainable materials, fair factories' },
-    { icon: Truck, label: 'Free Shipping', desc: 'On every order over ₹2,000' },
-    { icon: RotateCcw, label: '30-Day Returns', desc: 'Easy, no-fuss exchanges' },
+    { icon: Truck, label: 'Free Shipping', desc: 'On every order over ₹1,000' },
+    { icon: RotateCcw, label: '7-Day Returns', desc: 'Easy, no-fuss exchanges' },
     { icon: ShieldCheck, label: 'Secure Checkout', desc: 'Razorpay-protected payments' },
   ];
 

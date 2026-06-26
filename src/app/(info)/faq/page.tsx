@@ -28,7 +28,7 @@ const faqs = [
   {
     question: 'What is your return policy?',
     answer:
-      'We offer a 30-day hassle-free return policy. If you are not satisfied with your purchase, you can initiate a return within 30 days of delivery. Items must be unworn, unwashed, and in their original packaging with all tags attached. Refunds are processed within 5-7 business days to your original payment method.',
+      'We offer a 7-day hassle-free return policy. If you are not satisfied with your purchase, you can initiate a return within 7 days of delivery. Items must be unworn, unwashed, and in their original packaging with all tags attached. Refunds are processed within 5-7 business days to your original payment method.',
   },
   {
     question: 'Can I exchange an item for a different size?',

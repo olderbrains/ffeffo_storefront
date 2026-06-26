@@ -18,9 +18,9 @@ const navigation = [
 ];
 
 const announcements = [
-  'Complimentary shipping on orders over ₹2,000',
+  'Complimentary shipping on orders over ₹1,000',
   'Designed for Detours — built to last, made to wander',
-  '30-day easy returns on every order',
+  '7-day easy return on every order',
 ];
 
 export function Header() {

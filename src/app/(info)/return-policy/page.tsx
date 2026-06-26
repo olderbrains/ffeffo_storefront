@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Return & Refund Policy | Speffo',
   description:
-    'Speffo offers a 30-day hassle-free return policy. Learn about eligibility, process, and refund timelines.',
+    'Speffo offers a 7-day hassle-free return policy. Learn about eligibility, process, and refund timelines.',
 };
 
 export default function ReturnPolicyPage() {
@@ -20,7 +20,7 @@ export default function ReturnPolicyPage() {
       <div className="space-y-8 text-[15px] leading-relaxed text-muted-foreground">
         <section>
           <h2 className="font-serif text-xl font-semibold text-foreground">
-            30-Day Return Window
+            7-Day Return Window
           </h2>
           <p className="mt-3">
             We want you to love every piece you buy from Speffo. If something does not work
