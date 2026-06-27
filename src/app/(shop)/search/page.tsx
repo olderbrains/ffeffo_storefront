@@ -39,9 +39,13 @@ export default function SearchPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialQ = searchParams.get('q') ?? '';
+  const featured = searchParams.get('featured') === 'true';
+  const sale = searchParams.get('sale') === 'true';
+  const sort = searchParams.get('sort') ?? '';
 
   const [query, setQuery] = useState(initialQ);
   const [results, setResults] = useState<SearchResults | null>(null);
+  const [browseProducts, setBrowseProducts] = useState<CardProduct[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -61,6 +65,21 @@ export default function SearchPage() {
       setSearched(true);
     }
   }, []);
+
+  useEffect(() => {
+    if (featured || sale || sort) {
+      setLoading(true);
+      const params = new URLSearchParams({ limit: '24' });
+      if (featured) params.set('isFeatured', 'true');
+      if (sale) params.set('isOnSale', 'true');
+      if (sort === 'newest') { params.set('sortBy', 'createdAt'); params.set('sortOrder', 'desc'); }
+      fetch(`${API_BASE}/products?${params.toString()}`)
+        .then((r) => r.json())
+        .then((json) => setBrowseProducts(json.items || json.products || []))
+        .catch(() => setBrowseProducts([]))
+        .finally(() => { setLoading(false); setSearched(true); });
+    }
+  }, [featured, sale, sort]);
 
   // Run immediately on mount if URL had ?q=
   useEffect(() => {
@@ -93,7 +112,9 @@ export default function SearchPage() {
     >
       {/* Search input */}
       <div className="mx-auto max-w-2xl">
-        <h1 className="font-serif text-3xl font-semibold tracking-tight sm:text-4xl text-center">Search</h1>
+        <h1 className="font-serif text-3xl font-semibold tracking-tight sm:text-4xl text-center">
+          {featured ? 'Bestsellers' : sale ? 'Sale' : sort === 'newest' ? 'New Arrivals' : 'Search'}
+        </h1>
         <div className="relative mt-6">
           <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" strokeWidth={1.6} />
           <input
@@ -112,7 +133,7 @@ export default function SearchPage() {
       </div>
 
       {/* Popular */}
-      {!query.trim() && !searched && (
+      {!query.trim() && !searched && !featured && !sale && !sort && (
         <div className="mx-auto mt-10 max-w-2xl text-center">
           <h2 className="eyebrow text-clay">Popular Searches</h2>
           <div className="mt-4 flex flex-wrap justify-center gap-2">
@@ -144,8 +165,27 @@ export default function SearchPage() {
         </div>
       )}
 
+      {/* Browse mode (featured / sale / newest) */}
+      {!loading && (featured || sale || sort) && browseProducts.length > 0 && (
+        <div className="mt-10 space-y-6">
+          <div>
+            <h2 className="font-serif text-2xl font-semibold tracking-tight sm:text-3xl">
+              {featured ? 'Bestsellers' : sale ? 'Sale' : sort === 'newest' ? 'New Arrivals' : 'All Products'}
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {browseProducts.length} {browseProducts.length === 1 ? 'product' : 'products'}
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-9 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4">
+            {browseProducts.map((product, i) => (
+              <ProductCard key={product._id} product={product} index={i} />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* No results */}
-      {!loading && searched && total === 0 && (
+      {!loading && searched && total === 0 && !featured && !sale && !sort && (
         <div className="mt-14 text-center">
           <p className="font-medium">No results for &ldquo;{query}&rdquo;</p>
           <p className="mt-1 text-sm text-muted-foreground">Try a different search term or browse our collections.</p>

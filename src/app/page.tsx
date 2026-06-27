@@ -214,10 +214,10 @@ function StorySection() {
             and the best journeys rarely follow a straight line.
           </p>
           <Link
-            href="/about"
+            href="/brands"
             className="link-underline mt-8 inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.12em] text-forest"
           >
-            Read our story
+            Explore our brands
             <ArrowRight className="h-4 w-4" />
           </Link>
         </motion.div>
