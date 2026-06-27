@@ -75,7 +75,7 @@ export default function SearchPage() {
       if (sort === 'newest') { params.set('sortBy', 'createdAt'); params.set('sortOrder', 'desc'); }
       fetch(`${API_BASE}/products?${params.toString()}`)
         .then((r) => r.json())
-        .then((json) => setBrowseProducts(json.items || json.products || []))
+        .then((json) => setBrowseProducts(json.data?.items || json.items || json.products || []))
         .catch(() => setBrowseProducts([]))
         .finally(() => { setLoading(false); setSearched(true); });
     }
