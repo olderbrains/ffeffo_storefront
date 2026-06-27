@@ -88,6 +88,7 @@ export default function SearchPage() {
   }, []);
 
   useEffect(() => {
+    if (featured || sale || sort) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       doSearch(query);
