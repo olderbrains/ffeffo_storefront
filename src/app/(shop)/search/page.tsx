@@ -110,26 +110,29 @@ export default function SearchPage() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >
-      {/* Search input */}
+      {/* Page heading */}
       <div className="mx-auto max-w-2xl">
         <h1 className="font-serif text-3xl font-semibold tracking-tight sm:text-4xl text-center">
           {featured ? 'Bestsellers' : sale ? 'Sale' : sort === 'newest' ? 'New Arrivals' : 'Search'}
         </h1>
-        <div className="relative mt-6">
-          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" strokeWidth={1.6} />
-          <input
-            ref={inputRef}
-            type="search"
-            placeholder="Search products, categories, brands…"
-            className="w-full rounded-sm border border-border bg-card py-4 pl-12 pr-4 text-lg outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-forest/50"
-            autoFocus
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          {loading && (
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin rounded-full border-2 border-forest border-t-transparent" />
-          )}
-        </div>
+        {/* Search input — hidden in browse mode */}
+        {!featured && !sale && !sort && (
+          <div className="relative mt-6">
+            <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" strokeWidth={1.6} />
+            <input
+              ref={inputRef}
+              type="search"
+              placeholder="Search products, categories, brands…"
+              className="w-full rounded-sm border border-border bg-card py-4 pl-12 pr-4 text-lg outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-forest/50"
+              autoFocus
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+            {loading && (
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin rounded-full border-2 border-forest border-t-transparent" />
+            )}
+          </div>
+        )}
       </div>
 
       {/* Popular */}
