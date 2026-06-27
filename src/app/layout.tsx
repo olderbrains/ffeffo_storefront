@@ -25,8 +25,8 @@ export const metadata: Metadata = {
     'Considered, durable goods made for every kind of trip — from the weekend watering hole to a new city. Shop the latest arrivals at Speffo.',
   keywords: ['sustainable', 'apparel', 'online shopping', 'considered design', 'speffo'],
   icons: {
-    icon: '/logo.png',
-    apple: '/logo.png',
+    icon: '/favicon.png',
+    apple: '/favicon.png',
   },
   openGraph: {
     type: 'website',
