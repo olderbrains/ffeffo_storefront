@@ -1,9 +1,9 @@
 'use client';
 
-import { motion, useInView, useScroll, useTransform } from 'framer-motion';
+import { AnimatePresence, motion, useInView, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight, Leaf, RotateCcw, ShieldCheck, Truck } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { api } from '@/lib/api/client';
 import { ProductCard, type CardProduct } from '@/components/product/product-card';
@@ -31,7 +31,9 @@ interface Banner {
 /* ------------------------------------------------------------------ */
 /* Hero — full-bleed editorial image with overlaid headline           */
 /* ------------------------------------------------------------------ */
-function HeroSection({ banners }: { banners: Banner[] }) {
+const HERO_INTERVAL = 6000;
+
+function HeroSection({ banners, loading }: { banners: Banner[]; loading: boolean }) {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -40,27 +42,68 @@ function HeroSection({ banners }: { banners: Banner[] }) {
   const y = useTransform(scrollYProgress, [0, 1], ['0%', '18%']);
   const overlay = useTransform(scrollYProgress, [0, 1], [0.42, 0.7]);
 
-  const banner = banners[0];
-  const title = banner?.title ?? 'Designed for Detours';
-  const subtitle =
-    banner?.subtitle ??
-    'Considered, durable goods for every kind of trip — from the weekend watering hole to exploring a new city.';
-  const heroImage =
-    banner?.image?.desktop ??
-    'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=2000&q=80';
-  const ctaHref = banner?.link ?? '/search?sort=newest';
+  const [activeIndex, setActiveIndex] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval>>(undefined);
+
+  const fallback: Banner = {
+    _id: 'default',
+    title: 'Designed for Detours',
+    subtitle: 'Considered, durable goods for every kind of trip — from the weekend watering hole to exploring a new city.',
+    image: { desktop: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=2000&q=80', mobile: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=800&q=80' },
+    link: '/search?sort=newest',
+    position: 'hero',
+    priority: 0,
+  };
+
+  const slides = banners.length > 0 ? banners : [fallback];
+
+  const startTimer = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (slides.length <= 1) return;
+    timerRef.current = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % slides.length);
+    }, HERO_INTERVAL);
+  }, [slides.length]);
+
+  useEffect(() => {
+    startTimer();
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [startTimer]);
+
+  const goTo = (idx: number) => {
+    setActiveIndex(idx);
+    startTimer();
+  };
+
+  const banner = slides[activeIndex];
+  const title = banner.title;
+  const subtitle = banner.subtitle ?? '';
+  const heroImage = banner.image?.desktop ?? fallback.image.desktop;
+  const ctaHref = banner.link ?? '/search?sort=newest';
 
   return (
     <section ref={ref} className="relative h-[88vh] min-h-[560px] overflow-hidden bg-forest-deep">
-      {/* Background image with parallax */}
-      <motion.div className="absolute inset-0" style={{ y }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={heroImage}
-          alt={title}
-          className="h-[118%] w-full object-cover"
-        />
-      </motion.div>
+      {/* Background images with crossfade */}
+      {!loading && (
+        <AnimatePresence mode="sync">
+          <motion.div
+            key={banner._id}
+            className="absolute inset-0"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1, ease: 'easeInOut' }}
+            style={{ y }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={heroImage}
+              alt={title}
+              className="h-[118%] w-full object-cover"
+            />
+          </motion.div>
+        </AnimatePresence>
+      )}
 
       {/* Tinted gradient overlay for legibility */}
       <motion.div
@@ -71,73 +114,83 @@ function HeroSection({ banners }: { banners: Banner[] }) {
       <div className="relative z-10 flex h-full items-end pb-16 sm:items-center sm:pb-0">
         <div className="container">
           <div className="max-w-2xl">
-            <motion.span
-              className="eyebrow text-sand/80"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-            >
-              The New Arrivals
-            </motion.span>
-
-            <motion.h1
-              className="mt-4 font-serif text-5xl font-semibold leading-[0.98] tracking-tight text-sand sm:text-6xl lg:text-7xl"
-              initial={{ opacity: 0, y: 28 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.9, delay: 0.32, ease: [0.22, 0.4, 0.25, 1] }}
-            >
-              {title}
-            </motion.h1>
-
-            <motion.p
-              className="mt-6 max-w-md text-base leading-relaxed text-sand/85 sm:text-lg"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.5 }}
-            >
-              {subtitle}
-            </motion.p>
-
-            <motion.div
-              className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.7 }}
-            >
-              <Link
-                href={ctaHref}
-                className="group inline-flex items-center justify-center gap-2 rounded-sm bg-sand px-8 py-4 text-[13px] font-semibold uppercase tracking-[0.14em] text-forest-deep transition-all duration-300 hover:bg-white"
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={banner._id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.6, ease: 'easeOut' }}
               >
-                Shop New Arrivals
-                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-              </Link>
-              <Link
-                href="/categories"
-                className="inline-flex items-center justify-center gap-2 rounded-sm border border-sand/40 px-8 py-4 text-[13px] font-semibold uppercase tracking-[0.14em] text-sand transition-all duration-300 hover:border-sand hover:bg-sand/10"
-              >
-                Explore Collections
-              </Link>
-            </motion.div>
+                <span className="eyebrow text-sand/80">
+                  The New Arrivals
+                </span>
+
+                <h1 className="mt-4 font-serif text-5xl font-semibold leading-[0.98] tracking-tight text-sand sm:text-6xl lg:text-7xl">
+                  {title}
+                </h1>
+
+                {subtitle && (
+                  <p className="mt-6 max-w-md text-base leading-relaxed text-sand/85 sm:text-lg">
+                    {subtitle}
+                  </p>
+                )}
+
+                <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <Link
+                    href={ctaHref}
+                    className="group inline-flex items-center justify-center gap-2 rounded-sm bg-sand px-8 py-4 text-[13px] font-semibold uppercase tracking-[0.14em] text-forest-deep transition-all duration-300 hover:bg-white"
+                  >
+                    Shop Now
+                    <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  </Link>
+                  <Link
+                    href="/categories"
+                    className="inline-flex items-center justify-center gap-2 rounded-sm border border-sand/40 px-8 py-4 text-[13px] font-semibold uppercase tracking-[0.14em] text-sand transition-all duration-300 hover:border-sand hover:bg-sand/10"
+                  >
+                    Explore Collections
+                  </Link>
+                </div>
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
       </div>
 
-      {/* Scroll cue */}
-      <motion.div
-        className="absolute bottom-7 left-1/2 hidden -translate-x-1/2 sm:flex"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.4, duration: 1 }}
-      >
+      {/* Slide indicators */}
+      {slides.length > 1 && (
+        <div className="absolute bottom-7 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2">
+          {slides.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => goTo(i)}
+              className={`h-1.5 rounded-full transition-all duration-500 ${
+                i === activeIndex ? 'w-8 bg-sand' : 'w-3 bg-sand/40 hover:bg-sand/60'
+              }`}
+              aria-label={`Go to slide ${i + 1}`}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Scroll cue — only when single banner */}
+      {slides.length <= 1 && (
         <motion.div
-          className="flex flex-col items-center gap-2"
-          animate={{ y: [0, 7, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute bottom-7 left-1/2 hidden -translate-x-1/2 sm:flex"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.4, duration: 1 }}
         >
-          <span className="text-[10px] uppercase tracking-[0.3em] text-sand/70">Scroll</span>
-          <div className="h-7 w-px bg-gradient-to-b from-sand/60 to-transparent" />
+          <motion.div
+            className="flex flex-col items-center gap-2"
+            animate={{ y: [0, 7, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            <span className="text-[10px] uppercase tracking-[0.3em] text-sand/70">Scroll</span>
+            <div className="h-7 w-px bg-gradient-to-b from-sand/60 to-transparent" />
+          </motion.div>
         </motion.div>
-      </motion.div>
+      )}
     </section>
   );
 }
@@ -524,7 +577,7 @@ export default function HomePage() {
           </div>
         </div>
       )}
-      <HeroSection banners={banners} />
+      <HeroSection banners={banners} loading={loading} />
       <ValueStrip />
       <FeaturedProducts products={products} loading={loading} />
       <EditorialBanners />
