@@ -57,7 +57,13 @@ export default function SearchPage() {
     try {
       const res = await fetch(`${API_BASE}/search?q=${encodeURIComponent(term.trim())}&limit=16`);
       const json = await res.json();
-      setResults(json.data as SearchResults);
+      const raw = json.data;
+      const products: CardProduct[] = (raw.products || []).map((p: Record<string, unknown>) => ({
+        ...p,
+        images: p.images || (p.image ? [{ url: p.image }] : []),
+        brandId: p.brandId || (p.brand ? p.brand : undefined),
+      }));
+      setResults({ ...raw, products } as SearchResults);
     } catch {
       setResults(null);
     } finally {
